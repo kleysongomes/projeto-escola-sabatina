@@ -1,4 +1,4 @@
-# READM FRONT + BACK
+# README FRONT + BACK
 
 ## Review da Lição - Frontend
 
