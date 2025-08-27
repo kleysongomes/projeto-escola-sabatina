@@ -1,17 +1,16 @@
 const express = require('express');
-const cors = require('cors'); // Importamos o pacote CORS
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
 
-// Middleware para entender JSON
 app.use(express.json());
 
-// Middleware do CORS (DEVE VIR ANTES DAS ROTAS)
-// Isso dirá ao nosso servidor para aceitar requisições do nosso app Vue
+// ATUALIZE ESTE BLOCO ADICIONANDO A URL DO SEU FRONTEND DE PRODUÇÃO
 const corsOptions = {
   origin: [
-    'http://localhost:5173'
+    'http://localhost:5173', // Permissão para o desenvolvimento local
+    'https://projeto-escola-sabatina.onrender.com' // ADICIONADO: Permissão para o site no ar
   ]
 };
 app.use(cors(corsOptions));
