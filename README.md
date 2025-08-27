@@ -1,4 +1,6 @@
-# Review da Lição - Frontend
+# READM FRONT + BACK
+
+## Review da Lição - Frontend
 
 Este é o frontend para a aplicação de Reviews da Lição da Escola Sabatina. É uma Single Page Application (SPA) construída com Vue.js (Vue 3), utilizando Vite como ferramenta de build. A aplicação é focada em uma experiência mobile-first.
 
@@ -64,8 +66,9 @@ Este é o frontend para a aplicação de Reviews da Lição da Escola Sabatina. 
 -   `npm run preview`: Pré-visualiza a build de produção localmente.
 -   `npm run lint`: Executa o linter para verificar a qualidade do código.
 
+-----------------------------------------------------------------------
 
-# Review da Lição - Backend
+## Review da Lição - Backend
 
 Este é o serviço de backend para a aplicação de Reviews da Lição da Escola Sabatina. É uma API RESTful construída com Node.js e Express, conectada a um banco de dados PostgreSQL.
 
