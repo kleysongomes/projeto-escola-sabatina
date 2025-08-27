@@ -1,6 +1,6 @@
 # --- ESTÁGIO 1: Build da Aplicação Vue ---
-# Usamos uma imagem Node para ter as ferramentas de build (npm)
-FROM node:18-alpine AS builder
+# ATUALIZE ESTA LINHA de node:18-alpine para node:20-alpine
+FROM node:20-alpine AS builder
 
 # Define o diretório de trabalho
 WORKDIR /app
