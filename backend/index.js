@@ -10,7 +10,9 @@ app.use(express.json());
 // Middleware do CORS (DEVE VIR ANTES DAS ROTAS)
 // Isso dirá ao nosso servidor para aceitar requisições do nosso app Vue
 const corsOptions = {
-  origin: 'http://localhost:5173'
+  origin: [
+    'http://localhost:5173'
+  ]
 };
 app.use(cors(corsOptions));
 

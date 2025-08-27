@@ -1,20 +1,26 @@
 <template>
-  <div class="login-container">
-    <h1>Entrar</h1>
-    <form @submit.prevent="handleLogin">
-      <div class="form-group">
-        <label for="username">Usuário</label>
-        <input id="username" type="text" v-model="username" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Senha</label>
-        <input id="password" type="password" v-model="password" required />
-      </div>
-      <p v-if="error" class="error-message">{{ error }}</p>
-      <button type="submit" class="btn-primary">Entrar</button>
-    </form>
-    <p class="register-link">
-      Ainda não tem uma conta? <RouterLink to="/register">Cadastre-se</RouterLink>
+  <div class="auth-container">
+    <BookOpen :size="80" :stroke-width="2.5" :color="`var(--cor-secundaria)`" />
+
+    <h1 class="title">Bem-vindo de volta!</h1>
+    
+    <div class="card">
+      <form @submit.prevent="handleLogin">
+        <div class="form-group">
+          <label for="username">Usuário</label>
+          <input id="username" type="text" v-model="username" required class="input-field" />
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input id="password" type="password" v-model="password" required class="input-field" />
+        </div>
+        <p v-if="error" class="error-message">{{ error }}</p>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+    </div>
+
+    <p class="switch-link">
+      Não tem uma conta? <RouterLink :to="{ name: 'register' }">Crie uma</RouterLink>
     </p>
   </div>
 </template>
@@ -23,25 +29,21 @@
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+// Importamos o componente do ícone que queremos usar
+import { BookOpen } from 'lucide-vue-next';
 
-// Variáveis reativas para os campos do formulário e mensagens de erro
 const username = ref('');
 const password = ref('');
 const error = ref(null);
-
-// Instanciando o router e o nosso store de autenticação
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Função que é chamada quando o formulário é enviado
 const handleLogin = async () => {
-  error.value = null; // Limpa erros antigos
+  error.value = null;
   try {
     await authStore.login(username.value, password.value);
-    // Se o login for bem-sucedido, redireciona para a página principal
     router.push('/');
   } catch (err) {
-    // Se o login falhar, mostra uma mensagem de erro
     error.value = 'Usuário ou senha inválidos. Tente novamente.';
     console.error('Falha no login:', err);
   }
@@ -49,69 +51,37 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
+.auth-container {
+  text-align: center;
   padding-top: 2rem;
 }
-
-h1 {
-  color: var(--cor-destaque);
-  font-size: 2rem;
+.title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
 }
-
+.card {
+  margin-bottom: 1.5rem;
+}
 form {
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .form-group {
-  display: flex;
-  flex-direction: column;
+  text-align: left;
 }
-
 label {
+  font-weight: 700;
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  display: block;
 }
-
-input {
-  padding: 0.8rem;
-  background-color: var(--cor-fundo-secundaria);
-  border: 1px solid var(--cor-texto);
-  border-radius: 5px;
-  color: var(--cor-texto);
-  font-size: 1rem;
-}
-
-input:focus {
-  outline: none;
-  border-color: var(--cor-primaria);
-}
-
-.btn-primary {
-  padding: 0.9rem;
-  background-color: var(--cor-primaria);
-  color: var(--cor-fundo);
-  border: none;
-  border-radius: 5px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
 .error-message {
   color: var(--cor-erro);
-  text-align: center;
+  margin: 1rem 0;
 }
-
-.register-link {
-  margin-top: 1rem;
-  font-size: 0.9rem;
+.switch-link a {
+  color: var(--cor-primaria);
+  font-weight: 700;
 }
 </style>
