@@ -12,9 +12,6 @@ RUN npm install
 # Copia o resto do código do frontend
 COPY . .
 
-# LINHA PARA DEBUGAR O VALOR DA VARIÁVEL
-RUN echo "Build-time VITE_API_BASE_URL é: $VITE_API_BASE_URL"
-
 # Executa o comando de build, que gera os arquivos estáticos na pasta /dist
 RUN npm run build
 
