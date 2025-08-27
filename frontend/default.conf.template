@@ -1,0 +1,15 @@
+server {
+  listen 80;
+  server_name localhost;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+
+    sub_filter_once on;
+    # Usamos a sintaxe padrão de shell para que o 'envsubst' a substitua
+    sub_filter '__VITE_API_BASE_URL__' '${VITE_API_BASE_URL}';
+  }
+}
