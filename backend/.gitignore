@@ -1,0 +1,31 @@
+# Arquivo .gitignore para o Backend (Node.js)
+
+# Dependências
+# A pasta node_modules é gerada ao rodar `npm install` e é muito pesada.
+/node_modules
+
+# Variáveis de Ambiente e Segredos
+# Este arquivo contém senhas e chaves secretas. NUNCA deve ir para o repositório.
+.env
+
+# Logs
+# Arquivos de log gerados pela aplicação ou pelo npm.
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de Editor de Código e IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Pasta de build (caso o projeto evolua para TypeScript)
+/dist
+/build

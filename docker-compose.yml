@@ -1,0 +1,46 @@
+# Versão do Docker Compose que estamos usando. A 3.8 é moderna e estável.
+version: '3.8'
+
+# Aqui definimos os "serviços" ou containers que nossa aplicação terá.
+# Por enquanto, teremos apenas um: o banco de dados.
+services:
+  # Damos um nome para o nosso serviço de banco de dados. Vou chamar de "db".
+  db:
+    # Informamos qual imagem do Docker Hub queremos usar. "postgres:13" é uma versão
+    # muito confiável e utilizada do PostgreSQL.
+    image: postgres:16
+
+    # O nome que o container terá quando estiver rodando.
+    container_name: db_escola_sabatina
+
+    # Esta política faz com que o container tente reiniciar automaticamente
+    # caso ele pare por algum motivo. Ótimo para desenvolvimento.
+    restart: always
+
+    # Aqui configuramos as variáveis de ambiente, que são como as configurações
+    # iniciais do nosso PostgreSQL.
+    environment:
+      # Define o usuário padrão do banco de dados.
+      POSTGRES_USER: admin
+      # Define a senha para este usuário. Guarde bem esta senha!
+      POSTGRES_PASSWORD: j5ckuFwUkt2TfRbBhzBGUJ4fL
+      # Define o nome do banco de dados que será criado automaticamente.
+      POSTGRES_DB: sabbath_school_reviews
+
+    # O "ports" faz o mapeamento de uma porta do container para uma porta
+    # do seu computador. O PostgreSQL por padrão roda na porta 5432.
+    # Com esta linha, estamos dizendo: "A porta 5432 do container será
+    # acessível através da porta 5432 do meu computador".
+    ports:
+      - "5432:5432"
+
+    # Volumes são a forma de garantir que os dados não sejam perdidos.
+    # Estamos criando um "volume" chamado "postgres_data" e dizendo ao Docker
+    # para salvar os arquivos do banco de dados do container nele.
+    # Assim, mesmo que você apague o container, seus dados estarão salvos.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Aqui definimos os volumes que listamos acima.
+volumes:
+  postgres_data:
