@@ -1,12 +1,16 @@
 const axios = require('axios');
-const db = require('../config/db'); 
+const db = require('../config/db');
 
 const getDailyLesson = async (req, res) => {
   try {
-    // --- LÓGICA EXISTENTE PARA BUSCAR A LIÇÃO ---
     const today = new Date();
+    
+    // 1. AJUSTE DE FUSO HORÁRIO PARA O BRASIL (BRT is UTC-3)
+    // Subtrai 3 horas da data do servidor (UTC) para obter a data correta no Brasil.
+    today.setHours(today.getHours() - 3);
+
     const year = today.getFullYear();
-    const currentMonth = today.getMonth(); // 0 = Janeiro, 11 = Dezembro
+    const currentMonth = today.getMonth();
 
     // Calculando o Trimestre
     const quarterNumber = Math.floor(currentMonth / 3) + 1;
@@ -29,18 +33,18 @@ const getDailyLesson = async (req, res) => {
     
     const lessonResponse = await axios.get(apiUrl);
 
-    // --- 2. NOVA LÓGICA PARA VERIFICAR A REVIEW DO USUÁRIO ---
     const userId = req.user.id;
+    // 2. CONSULTA AO BANCO CORRIGIDA
+    // Usamos a data já ajustada como parâmetro ($2) em vez de CURRENT_DATE
+    // para garantir consistência entre o app e o banco.
     const reviewCheckQuery = `
-      SELECT id FROM reviews WHERE id_usuario = $1 AND DATE(data_criacao) = CURRENT_DATE;
+      SELECT id FROM reviews WHERE id_usuario = $1 AND DATE(data_criacao AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = DATE($2);
     `;
-    const reviewCheckResult = await db.query(reviewCheckQuery, [userId]);
+    const reviewCheckResult = await db.query(reviewCheckQuery, [userId, today]);
     const userHasSubmitted = reviewCheckResult.rows.length > 0;
-    // --- FIM DA NOVA LÓGICA ---
 
     console.log(`Usuário '${req.user.usuario}' (ID: ${userId}) acessou a lição. Já enviou review hoje: ${userHasSubmitted}`);
 
-    // 3. ATUALIZAMOS A RESPOSTA PARA ENVIAR TUDO PARA O FRONTEND
     res.json({
       ...lessonResponse.data,
       userHasSubmitted: userHasSubmitted

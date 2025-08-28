@@ -2,8 +2,8 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import Toast from "vue-toastification"; // <-- 1. IMPORTAR
-import "vue-toastification/dist/index.css"; // <-- 2. IMPORTAR O CSS
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 import App from './App.vue'
 import router from './router'
@@ -14,11 +14,11 @@ const app = createApp(App)
 
 app.use(createPinia())
 
-// --- Configuração de inicialização (código existente) ---
 const authStore = useAuthStore();
-// ...
+if (authStore.isAuthenticated) {
+  api.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`;
+}
 
-// --- 3. CONFIGURAR O PLUGIN DE TOAST ---
 const toastOptions = {
   position: "top-right",
   timeout: 4000,
@@ -37,7 +37,7 @@ const toastOptions = {
   newestOnTop: true
 };
 app.use(Toast, toastOptions);
-// --- FIM DA CONFIGURAÇÃO ---
 
 app.use(router)
+
 app.mount('#app')

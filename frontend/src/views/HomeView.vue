@@ -5,7 +5,7 @@
     
     <div v-else-if="lesson" class="lesson-content">
       <div class="card lesson-card">
-        <span class="lesson-date">{{ lesson.date }}</span>
+        <span class="lesson-date">Lição de hoje {{ lesson.date }}</span>
         <h1 class="lesson-title">{{ lesson.title }}</h1>
       </div>
       <br/>
@@ -21,7 +21,7 @@
           ></textarea>
           
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Enviando...' : 'Enviar e ganhar pontos' }}
+            {{ isSubmitting ? 'Enviando...' : 'Enviar Review' }}
           </button>
         </form>
 
@@ -43,10 +43,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { RouterLink } from 'vue-router'; // 1. Importar RouterLink
+import { RouterLink } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
-import { CheckCircle2 } from 'lucide-vue-next'; // 2. Importar o ícone de check
+import { CheckCircle2 } from 'lucide-vue-next';
 
 // Refs
 const lesson = ref(null);
@@ -54,7 +54,7 @@ const reviewContent = ref('');
 const isLoading = ref(true);
 const error = ref(null);
 const isSubmitting = ref(false);
-const hasSubmittedToday = ref(false); // 3. Novo Ref para controlar a exibição
+const hasSubmittedToday = ref(false);
 const toast = useToast();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
@@ -72,7 +72,6 @@ const fetchLesson = async () => {
   try {
     const response = await api.get('/lessons/today');
     lesson.value = response.data;
-    // 4. Guardamos o status que veio do backend
     hasSubmittedToday.value = response.data.userHasSubmitted; 
   } catch (err) {
     error.value = 'Não foi possível carregar a lição de hoje.';
@@ -105,7 +104,6 @@ const handleSubmitReview = async () => {
     });
     toast.success(`Parabéns! Você ganhou ${response.data.pontos_ganhos} pontos!`);
     reviewContent.value = '';
-    // 5. Atualizamos o status para trocar a view instantaneamente
     hasSubmittedToday.value = true; 
   } catch (err) {
     toast.error(err.response?.data?.error || 'Ocorreu um erro ao enviar.');
@@ -120,7 +118,7 @@ const handleSubmitReview = async () => {
 .home-container { 
   display: flex; 
   flex-direction: column; 
-  gap: 1.5rem; /* Ajustei o espaçamento */
+  gap: 1.5rem;
 }
 .loading, .error-message { 
   text-align: center; 
@@ -158,7 +156,11 @@ textarea {
   cursor: not-allowed;
 }
 
-/* 6. ESTILOS PARA O NOVO CARD DE "TAREFA CONCLUÍDA" */
+/* CORREÇÃO PARA O BOTÃO FICAR COM LARGURA TOTAL */
+.review-card form .btn-primary {
+  width: 100%;
+}
+
 .submitted-state {
   text-align: center;
   display: flex;
@@ -194,7 +196,6 @@ textarea {
   color: var(--cor-container);
 }
 
-/* Estilos para o banner de instalação do PWA */
 .install-banner {
   position: fixed;
   bottom: 80px;
