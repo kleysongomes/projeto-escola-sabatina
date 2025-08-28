@@ -16,12 +16,9 @@ const registerUser = async (req, res) => {
     const result = await db.query(insertQuery, values);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    // Melhoria no tratamento de erro
-    // O código '23505' no PostgreSQL significa violação de chave única (usuário duplicado)
     if (error.code === '23505') {
       return res.status(409).json({ error: 'Este nome de usuário já está em uso.' });
     }
-    
     console.error("Erro ao registrar usuário:", error);
     res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
   }
@@ -40,7 +37,13 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
-    const payload = { id: user.id, usuario: user.usuario };
+    
+    const payload = { 
+      id: user.id, 
+      usuario: user.usuario,
+      isAdmin: user.is_admin
+    };
+    
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   } catch (error) {

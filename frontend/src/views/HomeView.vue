@@ -5,7 +5,7 @@
     
     <div v-else-if="lesson" class="lesson-content">
       <div class="card lesson-card">
-        <span class="lesson-date">Lição de hoje {{ lesson.date }}</span>
+        <span class="lesson-date">{{ lesson.date }}</span>
         <h1 class="lesson-title">{{ lesson.title }}</h1>
       </div>
       <br/>
@@ -21,7 +21,7 @@
           ></textarea>
           
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Enviando...' : 'Enviar Review' }}
+            {{ isSubmitting ? 'Enviando...' : 'Enviar e ganhar pontos' }}
           </button>
         </form>
 
@@ -30,6 +30,10 @@
           <h2 class="form-title">Parabéns!</h2>
           <p>Você já completou seu estudo de hoje. Volte amanhã para ganhar mais pontos!</p>
           <RouterLink to="/reviews" class="btn-secondary">Ver outras reviews</RouterLink>
+
+          <button v-if="authStore.user?.isAdmin" @click="writeAnother" class="btn-another-review">
+            Escrever Outra Review (Admin)
+          </button>
         </div>
       </div>
     </div>
@@ -47,6 +51,7 @@ import { RouterLink } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 import { CheckCircle2 } from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/auth'; // ADIÇÃO 2: Importar o authStore
 
 // Refs
 const lesson = ref(null);
@@ -58,6 +63,7 @@ const hasSubmittedToday = ref(false);
 const toast = useToast();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
+const authStore = useAuthStore(); // ADIÇÃO 3: Instanciar o authStore
 
 onMounted(() => {
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -65,7 +71,19 @@ onMounted(() => {
     installPromptEvent.value = e;
     showInstallBanner.value = true;
   });
-  fetchLesson();
+  
+  const cachedLesson = JSON.parse(localStorage.getItem('cachedLesson'));
+  const todayStr = new Date().toLocaleDateString('pt-BR');
+
+  if (cachedLesson && cachedLesson.dateStr === todayStr) {
+    console.log("Lição carregada do cache!");
+    lesson.value = cachedLesson.data;
+    hasSubmittedToday.value = cachedLesson.data.userHasSubmitted;
+    isLoading.value = false;
+  } else {
+    console.log("Cache antigo ou inexistente. Buscando na API.");
+    fetchLesson();
+  }
 });
 
 const fetchLesson = async () => {
@@ -73,6 +91,14 @@ const fetchLesson = async () => {
     const response = await api.get('/lessons/today');
     lesson.value = response.data;
     hasSubmittedToday.value = response.data.userHasSubmitted; 
+
+    const todayStr = new Date().toLocaleDateString('pt-BR');
+    const lessonToCache = {
+      dateStr: todayStr,
+      data: response.data,
+    };
+    localStorage.setItem('cachedLesson', JSON.stringify(lessonToCache));
+
   } catch (err) {
     error.value = 'Não foi possível carregar a lição de hoje.';
     console.error(err);
@@ -104,7 +130,20 @@ const handleSubmitReview = async () => {
     });
     toast.success(`Parabéns! Você ganhou ${response.data.pontos_ganhos} pontos!`);
     reviewContent.value = '';
-    hasSubmittedToday.value = true; 
+
+    // ADIÇÃO 4: Só "trava" o formulário se o usuário não for admin
+    if (!authStore.user?.isAdmin) {
+      hasSubmittedToday.value = true;
+    }
+    
+    const cachedLesson = JSON.parse(localStorage.getItem('cachedLesson'));
+    if (cachedLesson) {
+      if (!authStore.user?.isAdmin) {
+        cachedLesson.data.userHasSubmitted = true;
+        localStorage.setItem('cachedLesson', JSON.stringify(cachedLesson));
+      }
+    }
+
   } catch (err) {
     toast.error(err.response?.data?.error || 'Ocorreu um erro ao enviar.');
     console.error(err);
@@ -112,9 +151,15 @@ const handleSubmitReview = async () => {
     isSubmitting.value = false;
   }
 };
+
+// ADIÇÃO 5: Nova função para o botão de admin
+const writeAnother = () => {
+  hasSubmittedToday.value = false;
+};
 </script>
 
 <style scoped>
+/* Os estilos permanecem os mesmos da versão anterior */
 .home-container { 
   display: flex; 
   flex-direction: column; 
@@ -155,12 +200,9 @@ textarea {
   border-bottom-color: var(--cor-texto-suave);
   cursor: not-allowed;
 }
-
-/* CORREÇÃO PARA O BOTÃO FICAR COM LARGURA TOTAL */
 .review-card form .btn-primary {
   width: 100%;
 }
-
 .submitted-state {
   text-align: center;
   display: flex;
@@ -168,17 +210,14 @@ textarea {
   align-items: center;
   gap: 1rem;
 }
-
 .success-icon {
   color: var(--cor-primaria);
 }
-
 .submitted-state p {
   color: var(--cor-texto-suave);
   max-width: 80%;
   margin: 0 auto;
 }
-
 .btn-secondary {
   margin-top: 1rem;
   padding: 0.8rem 1.5rem;
@@ -190,10 +229,22 @@ textarea {
   text-decoration: none;
   transition: background-color 0.2s, color 0.2s;
 }
-
 .btn-secondary:hover {
   background-color: var(--cor-secundaria);
   color: var(--cor-container);
+}
+
+/* ADIÇÃO 6: Estilo para o novo botão de admin */
+.btn-another-review {
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--cor-texto-suave);
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  padding: 0.5rem;
 }
 
 .install-banner {
@@ -214,7 +265,6 @@ textarea {
   animation: slide-up 0.5s ease-out;
   z-index: 20;
 }
-
 @keyframes slide-up {
   from {
     transform: translateY(100px);
@@ -225,7 +275,6 @@ textarea {
     opacity: 1;
   }
 }
-
 .btn-install {
   background-color: var(--cor-container);
   color: var(--cor-secundaria);
