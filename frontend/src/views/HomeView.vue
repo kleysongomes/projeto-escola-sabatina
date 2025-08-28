@@ -5,7 +5,7 @@
     
     <div v-else-if="lesson" class="lesson-content">
       <div class="card lesson-card">
-        <span class="lesson-date">{{ lesson.date }}</span>
+        <span class="lesson-date">Título da lição de hoje {{ lesson.date }}</span>
         <h1 class="lesson-title">{{ lesson.title }}</h1>
       </div>
       <br/>
@@ -21,7 +21,7 @@
           ></textarea>
           
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Enviando...' : 'Enviar e ganhar pontos' }}
+            {{ isSubmitting ? 'Enviando...' : 'Enviar review' }}
           </button>
         </form>
 
