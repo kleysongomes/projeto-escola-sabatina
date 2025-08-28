@@ -1,13 +1,16 @@
 <template>
   <header class="header">
-    <h2 class="header-title">Review da Lição</h2>
-    <button @click="handleLogout" class="btn-logout">Sair</button>
+    <h2 class="header-title">Check in Lição</h2>
+    <button @click="handleLogout" class="btn-logout" aria-label="Sair">
+      <LogOut :size="20" />
+    </button>
   </header>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { LogOut } from 'lucide-vue-next'; // Import do ícone
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -43,10 +46,21 @@ const handleLogout = () => {
   background: none;
   border: 1px solid var(--cor-borda);
   color: var(--cor-texto-suave);
-  padding: 0.4rem 0.8rem;
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
+  
+  /* Ajustes para o ícone ficar bem centralizado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #f0f0f0;
+  color: var(--cor-erro);
 }
 </style>

@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.DEV
+  ? import.meta.env.VITE_API_BASE_URL // Em DEV, usa a variável do arquivo .env.local
+  : window.VITE_API_BASE_URL;        // Em PROD, usa a variável injetada pelo Nginx
+
 const api = axios.create({
-  // Lê a variável global que foi injetada pelo Nginx no index.html
-  baseURL: window.VITE_API_BASE_URL,
+  baseURL: baseURL,
 });
 
 export default api;

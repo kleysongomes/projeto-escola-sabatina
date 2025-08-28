@@ -6,7 +6,7 @@
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="username">Usuário</label>
-          <input id="username" type="text" v-model="formData.usuario" required class="input-field"/>
+          <input id="username" type="text" v-model.trim="formData.usuario" required class="input-field"/>
         </div>
         <div class="form-group">
           <label for="password">Senha</label>
@@ -24,11 +24,10 @@
           <label for="cidade">Cidade</label>
           <input id="cidade" type="text" v-model="formData.cidade" required class="input-field"/>
         </div>
-
-        <p v-if="error" class="error-message">{{ error }}</p>
-        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
       
-        <button type="submit" class="btn-primary">Criar conta</button>
+        <button type="submit" class="btn-primary" :disabled="isLoading">
+          {{ isLoading ? 'Cadastrando...' : 'Criar conta' }}
+        </button>
       </form>
     </div>
 
@@ -39,43 +38,48 @@
 </template>
 
 <script setup>
-// O SCRIPT SETUP CONTINUA IGUAL!
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import api from '@/services/api';
+import { useToast } from 'vue-toastification'; // Importar
 
 const formData = ref({
   usuario: '', senha: '', pais: '', estado: '', cidade: ''
 });
-const error = ref(null);
-const successMessage = ref(null);
+const isLoading = ref(false); // Novo estado para o botão
 const router = useRouter();
+const toast = useToast(); // Instanciar
 
 const handleRegister = async () => {
-  error.value = null;
-  successMessage.value = null;
+  isLoading.value = true;
   try {
     await api.post('/usuarios/register', formData.value);
-    successMessage.value = 'Cadastro realizado! Redirecionando...';
+    toast.success('Cadastro realizado com sucesso!');
+    
     setTimeout(() => {
       router.push('/login');
-    }, 2000);
+    }, 1500);
+
   } catch (err) {
-    error.value = err.response?.data?.error || 'Não foi possível realizar o cadastro.';
+    toast.error(err.response?.data?.error || 'Não foi possível realizar o cadastro.');
     console.error('Falha no cadastro:', err);
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
 
 <style scoped>
-/* ESTILOS IDÊNTICOS AOS DO LOGIN VIEW */
 .auth-container { text-align: center; padding-top: 1rem; }
 .title { font-size: 1.8rem; font-weight: 900; margin-bottom: 2rem; }
 .card { margin-bottom: 1.5rem; }
 form { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { text-align: left; }
 label { font-weight: 700; margin-bottom: 0.5rem; display: block; }
-.error-message { color: var(--cor-erro); margin: 1rem 0; }
-.success-message { color: var(--cor-primaria); margin: 1rem 0; }
 .switch-link a { color: var(--cor-primaria); font-weight: 700; }
+.btn-primary:disabled {
+  background-color: var(--cor-texto-suave);
+  border-bottom-color: var(--cor-texto-suave);
+  cursor: not-allowed;
+}
 </style>

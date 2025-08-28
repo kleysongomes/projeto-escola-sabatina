@@ -10,7 +10,7 @@ app.use(express.json());
 const corsOptions = {
   origin: [
     'http://localhost:5173', // Permissão para o desenvolvimento local
-    'https://projeto-escola-sabatina.onrender.com' // ADICIONADO: Permissão para o site no ar
+    'https://projeto-escola-sabatina.onrender.com', // ADICIONADO: Permissão para o site no ar
   ]
 };
 app.use(cors(corsOptions));

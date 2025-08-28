@@ -1,4 +1,4 @@
-/* Nova paleta de cores inspirada em gamificação */
+/* Nova paleta de cores com tons de azul */
 :root {
   --cor-fundo: #F7F7F7;            /* Branco suave */
   --cor-container: #FFFFFF;         /* Branco puro para os cards */
@@ -6,11 +6,20 @@
   --cor-texto: #4B4B4B;             /* Cinza escuro para texto, mais suave que preto */
   --cor-texto-suave: #777777;      /* Cinza mais claro para subtextos */
   
-  --cor-primaria: #58CC02;         /* Verde Duolingo para ações principais */
-  --cor-primaria-hover: #4CAF00;
-  --cor-secundaria: #1CB0F6;       /* Azul para informações e links */
-  --cor-sucesso: #A6E3A1;           /* Verde claro para mensagens de sucesso */
+  /* --- CORES ALTERADAS --- */
+  --cor-primaria: #3B82F6;         /* Azul vibrante para ações principais */
+  --cor-primaria-hover: #2563EB;     /* Azul mais escuro para hover */
+  --cor-secundaria: #1CB0F6;       /* Violeta para informações e links */
+  --cor-sucesso: #1CB0F6;           /* Verde/turquesa para sucesso */
   --cor-erro: #F38BA8;              /* Rosa/vermelho para erros */
+
+  /* Customização do Vue Toastification (agora no mesmo bloco) */
+  --toast-background-color: var(--cor-container);
+  --toast-color: var(--cor-texto);
+  --toast-icon-color-success: var(--cor-primaria); /* Usa o novo azul primário */
+  --toast-icon-color-error: var(--cor-erro);
+  --toast-icon-color-warning: #f59e0b;
+  --toast-progress-bar-color: var(--cor-primaria); /* Usa o novo azul primário */
 }
 
 /* Reset básico e configurações globais */
@@ -27,7 +36,6 @@ body {
   color: var(--cor-texto);
   background: var(--cor-fundo);
   line-height: 1.6;
-  /* Aplicando a nova fonte arredondada */
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
     Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 16px;
@@ -40,7 +48,6 @@ body {
   max-width: 500px;
   margin: 0 auto;
   padding: 1.5rem;
-  padding-bottom: 6rem;
 }
 
 /* Estilos globais para botões e inputs */
@@ -86,4 +93,11 @@ body {
   border: 1px solid var(--cor-borda);
   padding: 1.5rem;
   width: 100%;
+}
+
+.Vue-Toastification__toast {
+  font-family: 'Nunito', sans-serif;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid var(--cor-borda);
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="title">💬 Mural de Reviews</h1>
+    <h1 class="title">Mural de Reviews</h1>
     <div v-if="isLoading" class="loading">Carregando reviews...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div v-else-if="reviewsData && reviewsData.reviews.length > 0">

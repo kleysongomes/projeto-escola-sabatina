@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
+import { jwtDecode } from 'jwt-decode'; // <-- IMPORTAR
 import api from '@/services/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
+    // Agora o user também é carregado do localStorage
     user: JSON.parse(localStorage.getItem('user')) || null,
   }),
   getters: {
@@ -14,21 +16,19 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.post('/usuarios/login', { usuario, senha });
         const token = response.data.token;
-
-        // Guardamos o token no estado e no localStorage
+        
         this.token = token;
         localStorage.setItem('token', token);
 
-        // Adicionamos o token aos cabeçalhos do axios para futuras requisições
+        const userData = jwtDecode(token);
+        this.user = userData;
+        localStorage.setItem('user', JSON.stringify(userData));
+        
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-        // Podemos futuramente buscar os dados do usuário e guardar aqui também
-        // this.user = ...
-
-        return true; // Sucesso
+        return true;
       } catch (error) {
-        this.logout(); // Limpa qualquer estado antigo em caso de erro
-        throw error; // Propaga o erro para o componente tratar
+        this.logout();
+        throw error;
       }
     },
     logout() {

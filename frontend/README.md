@@ -1,4 +1,4 @@
-# Review da Lição - Frontend
+# Check in Lição - Frontend
 
 Este é o frontend para a aplicação de Reviews da Lição da Escola Sabatina. É uma Single Page Application (SPA) construída com Vue.js (Vue 3), utilizando Vite como ferramenta de build. A aplicação é focada em uma experiência mobile-first.
 

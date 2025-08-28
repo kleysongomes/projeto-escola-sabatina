@@ -1,16 +1,13 @@
 <template>
   <nav class="navbar">
     <RouterLink to="/" class="nav-link">
-      <Home :size="28" />
-      <span>Home</span>
+      <SquarePen  :size="28" />
     </RouterLink>
     <RouterLink to="/ranking" class="nav-link">
       <Trophy :size="28" />
-      <span>Ranking</span>
     </RouterLink>
     <RouterLink to="/reviews" class="nav-link">
       <ClipboardList :size="28" />
-      <span>Reviews</span>
     </RouterLink>
   </nav>
 </template>
@@ -18,7 +15,7 @@
 <script setup>
 import { RouterLink } from 'vue-router';
 // Importamos todos os ícones que vamos usar na navbar
-import { Home, Trophy, ClipboardList } from 'lucide-vue-next';
+import { SquarePen, Trophy, ClipboardList } from 'lucide-vue-next';
 </script>
 
 <style scoped>
@@ -44,7 +41,7 @@ import { Home, Trophy, ClipboardList } from 'lucide-vue-next';
   font-size: 0.75rem;
   transition: color 0.2s;
 }
-/* A tag do ícone agora é o próprio nome do componente (ex: Home, Trophy) */
+/* A tag do ícone agora é o próprio nome do componente (ex: Text, Trophy) */
 .nav-link :deep(svg) {
   width: 28px;
   height: 28px;
