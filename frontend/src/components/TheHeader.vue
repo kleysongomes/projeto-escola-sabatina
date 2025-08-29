@@ -1,16 +1,26 @@
 <template>
   <header class="header">
+    <div class="left-actions">
+      <RouterLink to="/sobre" class="header-btn" aria-label="Sobre o projeto">
+        <HelpCircle :size="22" />
+      </RouterLink>
+    </div>
+
     <h2 class="header-title">Check in Lição</h2>
-    <button @click="handleLogout" class="btn-logout" aria-label="Sair">
-      <LogOut :size="20" />
-    </button>
+
+    <div class="right-actions">
+      <button @click="handleLogout" class="header-btn" aria-label="Sair">
+        <LogOut :size="20" />
+      </button>
+    </div>
   </header>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { LogOut } from 'lucide-vue-next'; // Import do ícone
+// 4. Importar o novo ícone HelpCircle
+import { LogOut, HelpCircle } from 'lucide-vue-next';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -32,24 +42,37 @@ const handleLogout = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1rem; /* Padding ajustado */
   background-color: var(--cor-container);
   border-bottom: 1px solid var(--cor-borda);
   z-index: 10;
+  height: 60px; /* Altura fixa para consistência */
 }
+
+/* 5. Divs para alinhar o título no centro */
+.left-actions, .right-actions {
+  flex: 1;
+}
+.right-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .header-title {
+  flex: 2; /* Faz o título ocupar mais espaço */
+  text-align: center;
   font-weight: 900;
   font-size: 1.2rem;
   color: var(--cor-texto);
 }
-.btn-logout {
+
+/* 6. Estilo genérico para os botões do header */
+.header-btn {
   background: none;
-  border: 1px solid var(--cor-borda);
+  border: none;
   color: var(--cor-texto-suave);
-  border-radius: 8px;
+  border-radius: 50%;
   cursor: pointer;
-  
-  /* Ajustes para o ícone ficar bem centralizado */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,8 +82,8 @@ const handleLogout = () => {
   transition: background-color 0.2s, color 0.2s;
 }
 
-.btn-logout:hover {
+.header-btn:hover {
   background-color: #f0f0f0;
-  color: var(--cor-erro);
+  color: var(--cor-texto);
 }
 </style>
