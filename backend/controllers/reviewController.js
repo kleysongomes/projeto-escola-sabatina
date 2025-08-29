@@ -15,8 +15,7 @@ const submitReview = async (req, res) => {
     const now = new Date();
     now.setHours(now.getHours() - 3);
 
-    // Verificação de review diária agora é condicional
-    if (!req.user.isAdmin) { // SÓ VERIFICA SE O USUÁRIO NÃO FOR ADMIN
+    if (!req.user.isAdmin) {
       const dailyReviewCheckQuery = `
         SELECT id FROM reviews WHERE id_usuario = $1 AND DATE(data_criacao AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = DATE($2);
       `;
@@ -83,7 +82,8 @@ const listAllReviews = async (req, res) => {
         r.id, r.conteudo, r.pontos_ganhos, r.data_criacao, u.usuario 
       FROM reviews r
       JOIN usuarios u ON r.id_usuario = u.id
-      ORDER BY u.pontos_totais DESC, r.data_criacao DESC
+      /* MUDANÇA AQUI: Ordenando pela data de criação da review (mais recente primeiro) */
+      ORDER BY r.data_criacao DESC
       LIMIT $1 OFFSET $2;
     `;
     const countQuery = 'SELECT COUNT(*) FROM reviews;';
@@ -103,7 +103,6 @@ const listAllReviews = async (req, res) => {
   }
 };
 
-// Nova função para deletar uma review (apenas para admins)
 const deleteReview = async (req, res) => {
   const { id } = req.params;
   const client = await db.getClient();

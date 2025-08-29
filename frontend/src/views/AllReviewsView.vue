@@ -8,7 +8,10 @@
         <div class="card" v-for="review in reviewsData.reviews" :key="review.id">
           <p class="review-content">"{{ review.conteudo }}"</p>
           <div class="review-footer">
-            <span class="author">- {{ review.usuario }}</span>
+            <div class="author-info">
+              <span class="author">- {{ review.usuario }}</span>
+              <small class="review-date">{{ formatDate(review.data_criacao) }}</small>
+            </div>
             <div class="actions">
               <span class="points">+{{ review.pontos_ganhos }} pts</span>
               <button v-if="authStore.user?.isAdmin" @click="handleDelete(review.id)" class="btn-delete" title="Deletar Review">
@@ -32,17 +35,30 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
-import { useAuthStore } from '@/stores/auth';      // 1. Importar o authStore
-import { useToast } from 'vue-toastification';   // 2. Importar o useToast
-import { Trash2 } from 'lucide-vue-next';          // 3. Importar o ícone de lixeira
+import { useAuthStore } from '@/stores/auth';
+import { useToast } from 'vue-toastification';
+import { Trash2 } from 'lucide-vue-next';
 
 const reviewsData = ref(null);
 const isLoading = ref(true);
 const error = ref(null);
 const route = useRoute();
 const router = useRouter();
-const authStore = useAuthStore(); // 4. Instanciar o authStore
-const toast = useToast();         // 5. Instanciar o toast
+const authStore = useAuthStore();
+const toast = useToast();
+
+// 1. Nova função para formatar a data e hora
+const formatDate = (isoString) => {
+  if (!isoString) return '';
+  const options = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  return new Date(isoString).toLocaleString('pt-BR', options);
+};
 
 const fetchReviews = async (page) => {
   isLoading.value = true;
@@ -63,13 +79,11 @@ const changePage = (page) => {
   }
 };
 
-// 6. Nova função para deletar a review
 const handleDelete = async (reviewId) => {
   if (confirm('Tem certeza que deseja deletar esta review? Os pontos do usuário serão revertidos.')) {
     try {
       await api.delete(`/reviews/${reviewId}`);
       toast.success('Review deletada com sucesso!');
-      // Recarrega as reviews da página atual para refletir a exclusão
       fetchReviews(parseInt(route.query.page) || 1);
     } catch (err) {
       toast.error('Não foi possível deletar a review.');
@@ -112,8 +126,6 @@ watch(() => route.query.page, (newPage) => {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* 7. Novos estilos para o botão de deletar */
 .actions { 
   display: flex; 
   align-items: center; 
@@ -133,5 +145,17 @@ watch(() => route.query.page, (newPage) => {
 .btn-delete:hover {
   color: var(--cor-erro);
   background-color: #ffeded;
+}
+
+/* 3. Novos estilos para agrupar autor e data */
+.author-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.review-date {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  opacity: 0.8;
 }
 </style>
