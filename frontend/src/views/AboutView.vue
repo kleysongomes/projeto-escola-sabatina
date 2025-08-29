@@ -19,7 +19,7 @@
     <div class="card info-card">
       <h2 class="section-title"><UserCircle :size="20" /> Do criador</h2>
       <p>
-        Olá, meu nome é <strong>Kleyson Gomes</strong>, e tenho dedicado tempo e empenho nesse projeto, espero que goste!.
+        Olá, meu nome é <strong>Kleyson Gomes</strong>, e tenho dedicado tempo e empenho nesse projeto, espero que goste!
         </p>
     </div>
     
