@@ -4,33 +4,34 @@ const submitReview = async (req, res) => {
   const userId = req.user.id;
   const { conteudo, indiceLicao } = req.body;
 
-  // Validações iniciais
   if (!conteudo || conteudo.trim() === '') {
     return res.status(400).json({ error: 'O conteúdo da review não pode estar vazio.' });
   }
   if (!indiceLicao) {
     return res.status(400).json({ error: 'O índice da lição é obrigatório.' });
   }
-  
   if (conteudo.length > 300) {
     return res.status(400).json({ error: 'A review não pode ter mais de 300 caracteres.' });
   }
 
   try {
-    const now = new Date();
-    now.setHours(now.getHours() - 3);
-
     if (!req.user.isAdmin) {
+      // CONSULTA FINAL E CORRETA para a verificação de review diária
       const dailyReviewCheckQuery = `
-        SELECT id FROM reviews WHERE id_usuario = $1 AND DATE(data_criacao AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') = DATE($2);
+        SELECT id FROM reviews 
+        WHERE id_usuario = $1 
+        AND (data_criacao AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date;
       `;
-      const existingReview = await db.query(dailyReviewCheckQuery, [userId, now]);
+      const existingReview = await db.query(dailyReviewCheckQuery, [userId]);
 
       if (existingReview.rows.length > 0) {
         return res.status(409).json({ error: 'Você já enviou uma review hoje.' });
       }
     }
 
+    // A lógica de pontuação ainda usa a data ajustada para calcular a hora corretamente
+    const now = new Date();
+    now.setHours(now.getHours() - 3);
     const hour = now.getHours();
     const characterCount = conteudo.length;
     let pontosPorHorario = 0;

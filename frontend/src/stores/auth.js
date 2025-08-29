@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
-import { jwtDecode } from 'jwt-decode'; // <-- IMPORTAR
+import { jwtDecode } from 'jwt-decode';
 import api from '@/services/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
-    // Agora o user também é carregado do localStorage
     user: JSON.parse(localStorage.getItem('user')) || null,
   }),
   getters: {
@@ -19,6 +18,8 @@ export const useAuthStore = defineStore('auth', {
         
         this.token = token;
         localStorage.setItem('token', token);
+
+        localStorage.removeItem('cachedLesson');
 
         const userData = jwtDecode(token);
         this.user = userData;
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('cachedLesson');
       delete api.defaults.headers.common['Authorization'];
     },
   },
