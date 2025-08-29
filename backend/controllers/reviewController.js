@@ -4,11 +4,16 @@ const submitReview = async (req, res) => {
   const userId = req.user.id;
   const { conteudo, indiceLicao } = req.body;
 
+  // Validações iniciais
   if (!conteudo || conteudo.trim() === '') {
     return res.status(400).json({ error: 'O conteúdo da review não pode estar vazio.' });
   }
   if (!indiceLicao) {
     return res.status(400).json({ error: 'O índice da lição é obrigatório.' });
+  }
+  
+  if (conteudo.length > 300) {
+    return res.status(400).json({ error: 'A review não pode ter mais de 300 caracteres.' });
   }
 
   try {
@@ -82,7 +87,6 @@ const listAllReviews = async (req, res) => {
         r.id, r.conteudo, r.pontos_ganhos, r.data_criacao, u.usuario 
       FROM reviews r
       JOIN usuarios u ON r.id_usuario = u.id
-      /* MUDANÇA AQUI: Ordenando pela data de criação da review (mais recente primeiro) */
       ORDER BY r.data_criacao DESC
       LIMIT $1 OFFSET $2;
     `;

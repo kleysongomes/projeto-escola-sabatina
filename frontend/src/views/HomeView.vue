@@ -12,13 +12,17 @@
       <div class="card review-card">
         <form v-if="!hasSubmittedToday" @submit.prevent="handleSubmitReview">
           <h2 class="form-title">Qual foi o seu aprendizado?</h2>
-          <textarea
-            v-model="reviewContent"
-            placeholder="Escreva aqui sua reflexão sobre o estudo de hoje..."
-            rows="8"
-            required
-            class="input-field"
-          ></textarea>
+          <div class="textarea-wrapper">
+            <textarea
+              v-model="reviewContent"
+              placeholder="Escreva aqui sua reflexão sobre o estudo de hoje..."
+              rows="8"
+              required
+              class="input-field"
+              maxlength="300" 
+            ></textarea>
+            <small class="char-counter">{{ reviewContent.length }} / 300</small>
+          </div>
           
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
             {{ isSubmitting ? 'Enviando...' : 'Enviar review' }}
@@ -51,9 +55,9 @@ import { RouterLink } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 import { CheckCircle2 } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth'; // ADIÇÃO 2: Importar o authStore
+import { useAuthStore } from '@/stores/auth';
 
-// Refs
+// O script permanece o mesmo, a validação principal é feita pelo maxlength no template
 const lesson = ref(null);
 const reviewContent = ref('');
 const isLoading = ref(true);
@@ -63,7 +67,7 @@ const hasSubmittedToday = ref(false);
 const toast = useToast();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
-const authStore = useAuthStore(); // ADIÇÃO 3: Instanciar o authStore
+const authStore = useAuthStore();
 
 onMounted(() => {
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -131,7 +135,6 @@ const handleSubmitReview = async () => {
     toast.success(`Parabéns! Você ganhou ${response.data.pontos_ganhos} pontos!`);
     reviewContent.value = '';
 
-    // ADIÇÃO 4: Só "trava" o formulário se o usuário não for admin
     if (!authStore.user?.isAdmin) {
       hasSubmittedToday.value = true;
     }
@@ -152,7 +155,6 @@ const handleSubmitReview = async () => {
   }
 };
 
-// ADIÇÃO 5: Nova função para o botão de admin
 const writeAnother = () => {
   hasSubmittedToday.value = false;
 };
@@ -191,10 +193,27 @@ const writeAnother = () => {
   margin-bottom: 1rem; 
   text-align: center; 
 }
+
+/* 2. ADICIONADO: Wrapper para textarea e contador */
+.textarea-wrapper {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
 textarea { 
   resize: vertical; 
-  margin-bottom: 1.5rem; 
+  /* removemos a margem daqui para o wrapper controlar */
 }
+
+/* 3. ADICIONADO: Estilo do contador */
+.char-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
 .btn-primary:disabled {
   background-color: var(--cor-texto-suave);
   border-bottom-color: var(--cor-texto-suave);
@@ -233,8 +252,6 @@ textarea {
   background-color: var(--cor-secundaria);
   color: var(--cor-container);
 }
-
-/* ADIÇÃO 6: Estilo para o novo botão de admin */
 .btn-another-review {
   margin-top: 0.5rem;
   background: none;
@@ -246,7 +263,6 @@ textarea {
   font-size: 0.9rem;
   padding: 0.5rem;
 }
-
 .install-banner {
   position: fixed;
   bottom: 80px;
