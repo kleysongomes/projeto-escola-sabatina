@@ -5,7 +5,7 @@
     
     <div v-else-if="lesson" class="lesson-content">
       <div class="card lesson-card">
-        <span class="lesson-date">Título da lição de hoje {{ lesson.date }}</span>
+        <span class="lesson-date">Título de hoje {{ lesson.date }}</span>
         <h1 class="lesson-title">{{ lesson.title }}</h1>
       </div>
       <br/>

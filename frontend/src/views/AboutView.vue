@@ -21,7 +21,7 @@
 
     <div class="card info-card">
       <h2 class="section-title"><GitBranch :size="20" /> Versão</h2>
-      <p>Você está usando a versão: <strong>{{ appVersion }} - TESTE</strong></p>
+      <p>Você está usando a versão: <strong>{{ appVersion }}</strong></p>
     </div>
 
     <div class="card info-card">
