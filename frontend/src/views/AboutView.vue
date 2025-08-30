@@ -4,6 +4,14 @@
       <h1 class="page-title">Sobre o App</h1>
     </div>
 
+    <RouterLink to="/reportar-bug" class="banner-report-bug">
+      <div class="banner-content">
+        <Bug :size="20" />
+        <span>Encontrou um problema? Nos ajude a melhorar!</span>
+      </div>
+      <ChevronRight :size="24" />
+    </RouterLink>
+
     <div class="card info-card">
       <h2 class="section-title"><Info :size="20" /> Sobre o Projeto</h2>
       <p>
@@ -17,9 +25,18 @@
     </div>
 
     <div class="card info-card">
+      <h2 class="section-title"><PartyPopper  :size="20" /> O que há de novo </h2>
+      <ul>
+        <li><strong>NOVO</strong>: Curtir Review.</li>
+        <li><strong>NOVO</strong>: Reportar Review.</li>
+        <li><strong>NOVO</strong>: Reportar BUGs.</li>
+      </ul>
+    </div>
+
+    <div class="card info-card">
       <h2 class="section-title"><UserCircle :size="20" /> Do criador</h2>
       <p>
-        Olá, meu nome é <strong>Kleyson Gomes</strong>, e tenho dedicado tempo e empenho nesse projeto, espero que goste!
+        Olá, meu nome é <strong>Kleyson Gomes</strong>, e tenho dedicado tempo e empenho nesse projeto, espero que goste!.
         </p>
     </div>
     
@@ -50,20 +67,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'; // Importar o ref
-import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import { useRouter, RouterLink } from 'vue-router';
 import { version } from '../../package.json';
-import { Info, GitBranch, UserCircle, Heart, HeartHandshake } from 'lucide-vue-next';
-
-// 2. IMPORTAÇÕES PARA A NOVA FUNCIONALIDADE
+// 2. Importamos o ícone ChevronRight
+import { Info, GitBranch, UserCircle, Heart, HeartHandshake, PartyPopper, Bug, ChevronRight } from 'lucide-vue-next'; 
 import VueQrcode from 'vue-qrcode';
 import { useToast } from 'vue-toastification';
 
 const router = useRouter();
 const appVersion = version;
 const toast = useToast();
-
-// 3. CHAVE PIX E FUNÇÃO DE COPIAR
 const pixKey = ref('00020101021126580014br.gov.bcb.pix01366a880e48-561d-41c1-b376-5e9e10712bc35204000053039865802BR5918KLEYSON DE O GOMES6007MACAIBA62070503***63046B14');
 
 const copyPixKey = async () => {
@@ -117,8 +131,6 @@ const copyPixKey = async () => {
   color: var(--cor-texto);
   font-weight: 700;
 }
-
-/* 4. NOVOS ESTILOS PARA A SEÇÃO DE APOIO */
 .support-card {
   text-align: center;
 }
@@ -130,5 +142,29 @@ const copyPixKey = async () => {
 .btn-copy-pix {
   width: 100%;
   max-width: 250px;
+}
+
+/* 3. ESTILOS ATUALIZADOS PARA O BANNER */
+.banner-report-bug {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #fffbeb; /* Amarelo bem claro */
+  color: #b45309; /* Laranja escuro */
+  border: 1px solid #fef3c7; /* Amarelo claro */
+  border-radius: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.banner-report-bug:hover {
+  background-color: #fef3c7;
+}
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 </style>

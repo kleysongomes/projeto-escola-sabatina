@@ -6,11 +6,10 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// ATUALIZE ESTE BLOCO ADICIONANDO A URL DO SEU FRONTEND DE PRODUÇÃO
 const corsOptions = {
   origin: [
-    'http://localhost:5173', // Permissão para o desenvolvimento local
-    'https://projeto-escola-sabatina.onrender.com', // ADICIONADO: Permissão para o site no ar
+    'http://localhost:5173',
+    'https://projeto-escola-sabatina.onrender.com',
   ]
 };
 app.use(cors(corsOptions));
@@ -26,6 +25,10 @@ app.use('/api/lessons', lessonRoutes);
 // Importa e usa as rotas de review
 const reviewRoutes = require('./routes/reviewRoutes');
 app.use('/api/reviews', reviewRoutes);
+
+// Importa e usa as rotas de bug report ---
+const bugRoutes = require('./routes/bugRoutes');
+app.use('/api/bugs', bugRoutes);
 
 
 // Função que inicializa o banco de dados e depois inicia o servidor

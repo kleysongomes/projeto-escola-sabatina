@@ -5,7 +5,8 @@ import LoginView from '../views/LoginView.vue';
 import RankingView from '../views/RankingView.vue';
 import AllReviewsView from '../views/AllReviewsView.vue';
 import RegisterView from '../views/RegisterView.vue';
-import AboutView from '../views/AboutView.vue'; // 1. IMPORTAR A NOVA VIEW
+import AboutView from '../views/AboutView.vue';
+import ReportBugView from '../views/ReportBugView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,12 +26,11 @@ const router = createRouter({
     { 
       path: '/register', name: 'register', component: RegisterView
     },
-    // 2. ADICIONAR A NOVA ROTA
     {
-      path: '/sobre',
-      name: 'sobre',
-      component: AboutView,
-      meta: { requiresAuth: true } // Manterá o header e a navbar visíveis
+      path: '/sobre', name: 'sobre', component: AboutView, meta: { requiresAuth: true }
+    },
+    {
+      path: '/reportar-bug', name: 'report-bug', component: ReportBugView, meta: { requiresAuth: true }
     }
   ]
 });
