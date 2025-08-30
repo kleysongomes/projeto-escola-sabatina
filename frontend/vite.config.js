@@ -5,8 +5,6 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const ngrokHost = '2c845b1358fe.ngrok-free.app';
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -40,22 +38,5 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  },
-  server: {
-    host: true,
-    // Usa a variável para a lista de permissões do servidor de desenvolvimento
-    allowedHosts: [ngrokHost],
-    hmr: {
-      // Usa a variável para o HMR
-      host: ngrokHost,
-      protocol: 'wss',
-    }
-  },
-  // --- ADICIONAR ESTE NOVO BLOCO PARA O PREVIEW ---
-  preview: {
-    // Permite que o servidor de preview seja acessado externamente
-    host: true,
-    // Adiciona o host do ngrok à lista de permissões do preview
-    allowedHosts: [ngrokHost],
   }
 })

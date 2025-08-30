@@ -5,7 +5,7 @@
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div v-else-if="reviewsData && reviewsData.reviews.length > 0">
       <div class="reviews-list">
-        <div class="card" v-for="review in reviewsData.reviews" :key="review.id">
+        <div class="card" v-for="(review, index) in reviewsData.reviews" :key="review.id">
           <p class="review-content">"{{ review.conteudo }}"</p>
           <div class="review-footer">
             <div class="author-info">
@@ -13,9 +13,15 @@
               <small class="review-date">{{ formatDate(review.data_criacao) }}</small>
             </div>
             <div class="actions">
-              <span class="points">+{{ review.pontos_ganhos }} pts</span>
-              <button v-if="authStore.user?.isAdmin" @click="handleDelete(review.id)" class="btn-delete" title="Deletar Review">
-                <Trash2 :size="16" />
+              <button @click="handleLike(review.id, index)" class="action-btn like-btn" :class="{ 'liked': review.isLikedByCurrentUser }" title="Curtir">
+                <Heart :size="18" />
+                <span>{{ review.likesCount }}</span>
+              </button>
+              <button @click="handleReport(review.id)" class="action-btn report-btn" title="Reportar">
+                <Flag :size="18" />
+              </button>
+              <button v-if="authStore.user?.isAdmin" @click="handleDelete(review.id)" class="action-btn delete-btn" title="Deletar Review">
+                <Trash2 :size="18" />
               </button>
             </div>
           </div>
@@ -37,7 +43,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from 'vue-toastification';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2, Heart, Flag } from 'lucide-vue-next';
 
 const reviewsData = ref(null);
 const isLoading = ref(true);
@@ -47,7 +53,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
 
-// 1. Nova função para formatar a data e hora
 const formatDate = (isoString) => {
   if (!isoString) return '';
   const options = {
@@ -74,7 +79,7 @@ const fetchReviews = async (page) => {
 };
     
 const changePage = (page) => {
-  if (page > 0 && page <= reviewsData.value.totalPages) {
+  if (reviewsData.value && page > 0 && page <= reviewsData.value.totalPages) {
     router.push({ query: { page } });
   }
 };
@@ -92,12 +97,41 @@ const handleDelete = async (reviewId) => {
   }
 };
 
+const handleLike = async (reviewId, index) => {
+  const review = reviewsData.value.reviews[index];
+  review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
+  review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
+
+  try {
+    await api.post(`/reviews/${reviewId}/like`);
+  } catch (err) {
+    review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
+    review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
+    toast.error('Ocorreu um erro ao processar sua curtida.');
+    console.error(err);
+  }
+};
+
+const handleReport = async (reviewId) => {
+  if (confirm('Deseja reportar esta review por conteúdo inadequado?')) {
+    try {
+      const response = await api.post(`/reviews/${reviewId}/report`);
+      toast.success(response.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Não foi possível reportar a review.');
+      console.error(err);
+    }
+  }
+};
+
 onMounted(() => {
   fetchReviews(parseInt(route.query.page) || 1);
 });
 
 watch(() => route.query.page, (newPage) => {
-  fetchReviews(parseInt(newPage) || 1);
+  if (newPage) {
+    fetchReviews(parseInt(newPage));
+  }
 });
 </script>
 
@@ -107,9 +141,7 @@ watch(() => route.query.page, (newPage) => {
 .reviews-list { display: flex; flex-direction: column; gap: 1.5rem; }
 .card { border-left: 4px solid var(--cor-secundaria); }
 .review-content { margin-bottom: 1rem; font-style: italic; color: var(--cor-texto-suave); }
-.review-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
-.author { font-weight: 700; }
-.points { font-weight: 700; color: var(--cor-sucesso); }
+.review-footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.9rem; }
 .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
 .pagination span { color: var(--cor-texto-suave); font-weight: 700; }
 .pagination button {
@@ -129,30 +161,52 @@ watch(() => route.query.page, (newPage) => {
 .actions { 
   display: flex; 
   align-items: center; 
-  gap: 1rem; 
+  gap: 0.75rem; 
 }
-.btn-delete {
-  background: none;
-  border: none;
-  color: var(--cor-texto-suave);
-  cursor: pointer;
-  padding: 0.25rem;
+.action-btn {
   display: flex;
   align-items: center;
-  border-radius: 50%;
-  transition: color 0.2s, background-color 0.2s;
+  gap: 0.4rem;
+  background: none;
+  border: 1px solid var(--cor-borda);
+  padding: 0.3rem 0.7rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  transition: all 0.2s ease;
 }
-.btn-delete:hover {
+.action-btn:hover {
+  border-color: var(--cor-texto);
+  color: var(--cor-texto);
+}
+.like-btn.liked {
+  background-color: #ffeded;
+  color: var(--cor-erro);
+  border-color: var(--cor-erro);
+}
+.like-btn.liked :deep(svg) {
+  fill: var(--cor-erro);
+}
+.report-btn:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+.delete-btn {
+  background-color: transparent;
+  padding: 0.4rem;
+  border: none;
+}
+.delete-btn:hover {
   color: var(--cor-erro);
   background-color: #ffeded;
 }
-
-/* 3. Novos estilos para agrupar autor e data */
 .author-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
+.author { font-weight: 700; }
 .review-date {
   font-size: 0.8rem;
   color: var(--cor-texto-suave);
