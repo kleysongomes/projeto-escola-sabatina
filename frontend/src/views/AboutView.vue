@@ -30,7 +30,18 @@
         <li><strong>NOVO</strong>: Curtir Review.</li>
         <li><strong>NOVO</strong>: Reportar Review.</li>
         <li><strong>NOVO</strong>: Reportar BUGs.</li>
+        <li><strong>NOVO</strong>: Cadastro por Igreja</li>
+        <li><strong>NOVO</strong>: Filtro no Ranking</li>
       </ul>
+      
+      <a 
+        href="https://github.com/kleysongomes/projeto-escola-sabatina/issues?q=is%3Aissue+state%3Aclosed" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="documentation-link"
+      >
+        Ver documentação de entregas
+      </a>
     </div>
 
     <div class="card info-card">
@@ -70,7 +81,6 @@
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { version } from '../../package.json';
-// 2. Importamos o ícone ChevronRight
 import { Info, GitBranch, UserCircle, Heart, HeartHandshake, PartyPopper, Bug, ChevronRight } from 'lucide-vue-next'; 
 import VueQrcode from 'vue-qrcode';
 import { useToast } from 'vue-toastification';
@@ -143,17 +153,15 @@ const copyPixKey = async () => {
   width: 100%;
   max-width: 250px;
 }
-
-/* 3. ESTILOS ATUALIZADOS PARA O BANNER */
 .banner-report-bug {
   display: flex;
   width: 100%;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background-color: #fffbeb; /* Amarelo bem claro */
-  color: #b45309; /* Laranja escuro */
-  border: 1px solid #fef3c7; /* Amarelo claro */
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
   border-radius: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -166,5 +174,16 @@ const copyPixKey = async () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+.documentation-link {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  text-decoration: underline;
+}
+.documentation-link:hover {
+  color: var(--cor-secundaria);
 }
 </style>

@@ -30,6 +30,9 @@ app.use('/api/reviews', reviewRoutes);
 const bugRoutes = require('./routes/bugRoutes');
 app.use('/api/bugs', bugRoutes);
 
+// Importa e usa as rotas de Igreja
+const igrejasRoutes = require('./routes/igrejasRoutes');
+app.use('/api/igrejas', igrejasRoutes);
 
 // Função que inicializa o banco de dados e depois inicia o servidor
 const startServer = async () => {
