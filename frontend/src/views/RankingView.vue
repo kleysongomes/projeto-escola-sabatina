@@ -48,11 +48,18 @@
         <ol class="ranking-list">
           <li v-for="(user, index) in rankingData.ranking" :key="user.id" :class="{ 'current-user': user.id === authStore.user?.id }">
             <span class="rank-position">#{{ (rankingData.currentPage - 1) * 10 + index + 1 }}</span>
+            
             <div class="user-info">
-              <span class="username">{{ user.usuario }}</span>
-              <span class="location">{{ user.cidade }}, {{ user.pais }} <small v-if="user.igreja_nome">({{ user.igreja_nome }})</small></span>
+              <div class="user-main-info">
+                <span class="username">{{ user.usuario }}</span>
+                <span class="points">{{ user.pontos_totais }} pts</span>
+              </div>
+              <div class="user-sub-info">
+                <span class="location">{{ user.cidade }}, {{ user.pais }}</span>
+                <span v-if="user.igreja_nome" class="church-name">{{ user.igreja_nome }}</span>
+              </div>
             </div>
-            <span class="points">{{ user.pontos_totais }} pts</span>
+            
           </li>
         </ol>
       </div>
@@ -155,13 +162,41 @@ watch(() => route.query, () => {
 .loading, .no-data, .error-message { text-align: center; margin-top: 2rem; }
 .ranking-card { padding: 0.5rem 1rem; margin-top: 1.5rem; }
 .ranking-list { list-style: none; padding: 0; }
-.ranking-list li { display: flex; align-items: center; padding: 1rem 0.5rem; border-bottom: 1px solid var(--cor-borda); }
+.ranking-list li { 
+  display: flex; 
+  align-items: flex-start;
+  padding: 1rem 0.5rem; 
+  border-bottom: 1px solid var(--cor-borda); 
+}
 .ranking-list li:last-child { border-bottom: none; }
-.rank-position { font-size: 1.2rem; font-weight: 900; color: var(--cor-texto-suave); min-width: 45px; }
-.user-info { flex-grow: 1; }
-.username { font-weight: 700; }
-.location { font-size: 0.9rem; color: var(--cor-texto-suave); }
+.rank-position { 
+  font-size: 1.2rem; 
+  font-weight: 900; 
+  color: var(--cor-texto-suave); 
+  min-width: 45px; 
+  padding-top: 0.25rem;
+}
+.user-info { 
+  flex-grow: 1; 
+  display: flex;
+  flex-direction: column;
+}
+.user-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.username { font-weight: 700; font-size: 1.1rem; }
 .points { font-weight: 900; font-size: 1.1rem; color: var(--cor-secundaria); }
+
+.user-sub-info {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem; 
+  color: var(--cor-texto-suave);
+  margin-top: 0.25rem;
+}
 .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
 .pagination span { color: var(--cor-texto-suave); font-weight: 700; }
 .pagination button {
