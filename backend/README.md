@@ -1,4 +1,4 @@
-# Check in Lição - Backend
+# Stud+ - Backend
 
 Este é o serviço de backend para a aplicação de Reviews da Lição da Escola Sabatina. É uma API RESTful construída com Node.js e Express, conectada a um banco de dados PostgreSQL.
 

@@ -13,8 +13,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Check in Lição',
-        short_name: 'CheckInLição',
+        name: 'Stud+',
+        short_name: 'Stud+',
         description: 'Um app para registrar suas reviews da lição da Escola Sabatina.',
         theme_color: '#FFFFFF',
         display: 'standalone',

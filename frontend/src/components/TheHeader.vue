@@ -6,7 +6,7 @@
       </RouterLink>
     </div>
 
-    <h2 class="header-title">Check in Lição</h2>
+    <img :src="logoUrl" alt="Stud+ Logo" class="header-logo" />
 
     <div class="right-actions">
       <button @click="handleLogout" class="header-btn" aria-label="Sair">
@@ -19,8 +19,8 @@
 <script setup>
 import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-// 4. Importar o novo ícone HelpCircle
 import { LogOut, HelpCircle } from 'lucide-vue-next';
+import logoUrl from '@/assets/stud_blue.png';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -42,14 +42,12 @@ const handleLogout = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.8rem 1rem; /* Padding ajustado */
+  padding: 0.8rem 1rem;
   background-color: var(--cor-container);
   border-bottom: 1px solid var(--cor-borda);
   z-index: 10;
-  height: 60px; /* Altura fixa para consistência */
+  height: 60px;
 }
-
-/* 5. Divs para alinhar o título no centro */
 .left-actions, .right-actions {
   flex: 1;
 }
@@ -58,15 +56,10 @@ const handleLogout = () => {
   justify-content: flex-end;
 }
 
-.header-title {
-  flex: 2; /* Faz o título ocupar mais espaço */
-  text-align: center;
-  font-weight: 900;
-  font-size: 1.2rem;
-  color: var(--cor-texto);
+.header-logo {
+  height: 80px; /* Ajuste esta altura conforme o design da sua logo */
 }
 
-/* 6. Estilo genérico para os botões do header */
 .header-btn {
   background: none;
   border: none;
@@ -81,7 +74,6 @@ const handleLogout = () => {
   padding: 0;
   transition: background-color 0.2s, color 0.2s;
 }
-
 .header-btn:hover {
   background-color: #f0f0f0;
   color: var(--cor-texto);

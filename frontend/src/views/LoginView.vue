@@ -1,6 +1,6 @@
 <template>
   <div class="auth-container">
-    <BookOpen :size="80" :stroke-width="2.5" :color="`var(--cor-secundaria)`" />
+    <img :src="logoUrl" alt="Stud+ Logo" class="logo" />
 
     <h1 class="title">Bem-vindo de volta!</h1>
     
@@ -29,8 +29,7 @@
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-// Importamos o componente do ícone que queremos usar
-import { BookOpen } from 'lucide-vue-next';
+import logoUrl from '@/assets/stud_blue.png';
 
 const username = ref('');
 const password = ref('');
@@ -55,11 +54,23 @@ const handleLogin = async () => {
   text-align: center;
   padding-top: 2rem;
 }
+
+
+.logo {
+  height: 120px;
+  margin-bottom: -25px; 
+  position: relative; 
+  z-index: 1;
+}
+
 .title {
   font-size: 1.8rem;
   font-weight: 900;
-  margin-bottom: 2rem;
+  margin-top: 0; 
+  margin-bottom: 1.5rem;
 }
+
+
 .card {
   margin-bottom: 1.5rem;
 }
