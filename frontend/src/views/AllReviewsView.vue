@@ -17,6 +17,11 @@
                 <Heart :size="18" />
                 <span>{{ review.likesCount }}</span>
               </button>
+              
+              <button v-if="canShare" @click="handleShare(review)" class="action-btn share-btn" title="Compartilhar">
+                <Share2 :size="18" />
+              </button>
+
               <button @click="handleReport(review.id)" class="action-btn report-btn" title="Reportar">
                 <Flag :size="18" />
               </button>
@@ -43,7 +48,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from 'vue-toastification';
-import { Trash2, Heart, Flag } from 'lucide-vue-next';
+import { Trash2, Heart, Flag, Share2 } from 'lucide-vue-next';
 
 const reviewsData = ref(null);
 const isLoading = ref(true);
@@ -52,6 +57,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
+const canShare = !!navigator.share;
 
 const formatDate = (isoString) => {
   if (!isoString) return '';
@@ -80,7 +86,7 @@ const fetchReviews = async (page) => {
     
 const changePage = (page) => {
   if (reviewsData.value && page > 0 && page <= reviewsData.value.totalPages) {
-    router.push({ query: { page } });
+    router.push({ query: { ...route.query, page } });
   }
 };
 
@@ -124,15 +130,29 @@ const handleReport = async (reviewId) => {
   }
 };
 
+const handleShare = async (review) => {
+  const siteUrl = 'https://projeto-escola-sabatina.onrender.com/';
+  
+  const shareData = {
+    title: 'Review da Lição - Stud+',
+    text: `Confira essa review de hoje no Stud+:\n\n"${review.conteudo}"\n\nEstude você também:\n${siteUrl}`,
+    url: siteUrl
+  };
+
+  try {
+    await navigator.share(shareData);
+  } catch (err) {
+    console.error('Erro ao compartilhar:', err);
+  }
+};
+
 onMounted(() => {
   fetchReviews(parseInt(route.query.page) || 1);
 });
 
-watch(() => route.query.page, (newPage) => {
-  if (newPage) {
-    fetchReviews(parseInt(newPage));
-  }
-});
+watch(() => route.query, (newQuery) => {
+  fetchReviews(parseInt(newQuery.page) || 1);
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -191,6 +211,10 @@ watch(() => route.query.page, (newPage) => {
 .report-btn:hover {
   border-color: #f59e0b;
   color: #f59e0b;
+}
+.share-btn:hover {
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
 }
 .delete-btn {
   background-color: transparent;
