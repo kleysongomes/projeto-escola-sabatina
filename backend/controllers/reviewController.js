@@ -1,7 +1,6 @@
 const db = require('../config/db');
 
 const submitReview = async (req, res) => {
-  // Nenhuma alteração nesta função
   const userId = req.user.id;
   const { conteudo, indiceLicao } = req.body;
 
@@ -11,8 +10,8 @@ const submitReview = async (req, res) => {
   if (!indiceLicao) {
     return res.status(400).json({ error: 'O índice da lição é obrigatório.' });
   }
-  if (conteudo.length > 300) {
-    return res.status(400).json({ error: 'A review não pode ter mais de 300 caracteres.' });
+  if (conteudo.length > 500) {
+    return res.status(400).json({ error: 'A review não pode ter mais de 500 caracteres.' });
   }
 
   try {
@@ -66,10 +65,13 @@ const submitReview = async (req, res) => {
     `;
     const userValues = [pontosGanhos, userId];
 
-    const newReview = await db.query(insertReviewQuery, reviewValues);
+    const newReviewResult = await db.query(insertReviewQuery, reviewValues);
     await db.query(updateUserPointsQuery, userValues);
 
-    res.status(201).json(newReview.rows[0]);
+    const newReview = newReviewResult.rows[0];
+    console.info(`INFO: Review ${newReview.id} criada pelo usuário ${userId}, gerando ${pontosGanhos} pontos.`);
+    
+    res.status(201).json(newReview);
 
   } catch (error) {
     console.error("Erro ao submeter review:", error);
@@ -81,11 +83,9 @@ const listAllReviews = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
-  // Precisamos da ID do usuário logado para saber se ele curtiu os posts
   const userId = req.user?.id || null; 
 
   try {
-    // A consulta SQL foi bastante modificada para incluir a contagem de likes
     const reviewsQuery = `
       SELECT 
         r.id, 
@@ -93,10 +93,7 @@ const listAllReviews = async (req, res) => {
         r.pontos_ganhos, 
         r.data_criacao, 
         u.usuario,
-        -- Contar o número de likes para cada review
         COUNT(DISTINCT l.user_id)::int AS "likesCount",
-        -- Verificar se o usuário logado (userId, passado como $3) já deu like
-        -- COALESCE garante que o resultado seja 'false' se não houver likes
         COALESCE(
           (SELECT true FROM review_likes WHERE review_id = r.id AND user_id = $3),
           false
@@ -128,27 +125,62 @@ const listAllReviews = async (req, res) => {
   }
 };
 
-const deleteReview = async (req, res) => { /* ... (código existente, sem alterações) ... */ };
+const deleteReview = async (req, res) => {
+  const { id } = req.params;
+  const adminUserId = req.user.id;
+  let client;
 
-// NOVA FUNÇÃO para curtir/descurtir uma review
+  try {
+    client = await db.getClient();
+    await client.query('BEGIN');
+
+    const reviewQuery = 'SELECT id_usuario, pontos_ganhos FROM reviews WHERE id = $1';
+    const reviewResult = await client.query(reviewQuery, [id]);
+
+    if (reviewResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Review não encontrada.' });
+    }
+    
+    const { id_usuario, pontos_ganhos } = reviewResult.rows[0];
+
+    const updateUserQuery = 'UPDATE usuarios SET pontos_totais = pontos_totais - $1 WHERE id = $2';
+    await client.query(updateUserQuery, [pontos_ganhos, id_usuario]);
+
+    const deleteQuery = 'DELETE FROM reviews WHERE id = $1';
+    await client.query(deleteQuery, [id]);
+
+    await client.query('COMMIT');
+
+    console.info(`INFO: ADMIN ACTION: Usuário admin ${adminUserId} deletou a review ${id} (originalmente do usuário ${id_usuario}).`);
+    res.status(200).json({ message: 'Review deletada com sucesso.' });
+
+  } catch (error) {
+    if (client) await client.query('ROLLBACK');
+    console.error(`Erro ao deletar review ${id} pelo admin ${adminUserId}:`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  } finally {
+    if (client) client.release();
+  }
+};
+
 const likeReview = async (req, res) => {
   const reviewId = req.params.id;
   const userId = req.user.id;
 
   try {
-    // Verifica se o usuário já curtiu esta review
     const likeCheckQuery = 'SELECT id FROM review_likes WHERE user_id = $1 AND review_id = $2';
     const likeCheckResult = await db.query(likeCheckQuery, [userId, reviewId]);
 
     if (likeCheckResult.rows.length > 0) {
-      // Se já curtiu, descurte (deleta o registro)
       const deleteLikeQuery = 'DELETE FROM review_likes WHERE user_id = $1 AND review_id = $2';
       await db.query(deleteLikeQuery, [userId, reviewId]);
+      console.info(`INFO: Usuário ${userId} removeu o like da review ${reviewId}.`);
       res.status(200).json({ message: 'Like removido.' });
     } else {
-      // Se não curtiu, curta (insere o registro)
       const insertLikeQuery = 'INSERT INTO review_likes (user_id, review_id) VALUES ($1, $2)';
       await db.query(insertLikeQuery, [userId, reviewId]);
+      console.info(`INFO: Usuário ${userId} curtiu a review ${reviewId}.`);
       res.status(200).json({ message: 'Review curtida.' });
     }
   } catch (error) {
@@ -157,18 +189,16 @@ const likeReview = async (req, res) => {
   }
 };
 
-// NOVA FUNÇÃO para reportar uma review
 const reportReview = async (req, res) => {
   const reviewId = req.params.id;
   const userId = req.user.id;
 
   try {
-    // Tenta inserir o report. O banco de dados impedirá a duplicata.
     const insertReportQuery = 'INSERT INTO review_reports (user_id, review_id) VALUES ($1, $2)';
     await db.query(insertReportQuery, [userId, reviewId]);
+    console.info(`INFO: Usuário ${userId} reportou a review ${reviewId}.`);
     res.status(200).json({ message: 'Review reportada com sucesso. Agradecemos sua colaboração.' });
   } catch (error) {
-    // O código '23505' é de violação de chave única (já reportou)
     if (error.code === '23505') {
       return res.status(409).json({ error: 'Você já reportou esta review.' });
     }

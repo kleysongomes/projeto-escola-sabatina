@@ -1,15 +1,18 @@
 const db = require('../config/db');
 
-// Função auxiliar para padronizar o texto (primeira letra maiúscula)
 const toTitleCase = (str) => {
-  if (!str) return str;
-  return str.trim().toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+  if (!str) return '';
+  return str
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 // Função para listar todas as igrejas
 const listAllIgrejas = async (req, res) => {
   try {
-    // Busca apenas o ID e o nome, ordenados alfabeticamente para o dropdown
     const result = await db.query('SELECT id, nome FROM igrejas ORDER BY nome ASC');
     res.json(result.rows);
   } catch (error) {
@@ -26,7 +29,6 @@ const createIgreja = async (req, res) => {
     return res.status(400).json({ error: 'O nome da igreja não pode estar vazio.' });
   }
 
-  // Padroniza os dados antes de salvar
   const nomePadronizado = toTitleCase(nome);
   const cidadePadronizada = toTitleCase(cidade);
   const estadoPadronizado = toTitleCase(estado);
@@ -41,10 +43,12 @@ const createIgreja = async (req, res) => {
     const values = [nomePadronizado, cidadePadronizada, estadoPadronizado, paisPadronizado];
     const result = await db.query(insertQuery, values);
     
-    // Retorna a igreja recém-criada, para que o frontend possa usar o ID
-    res.status(201).json(result.rows[0]);
+    const newIgreja = result.rows[0];
+
+    console.info(`INFO: Nova igreja criada: "${newIgreja.nome}" (ID: ${newIgreja.id}).`);
+
+    res.status(201).json(newIgreja);
   } catch (error) {
-    // O código '23505' é de violação de chave única (igreja já existe)
     if (error.code === '23505') {
       return res.status(409).json({ error: 'Uma igreja com este nome já existe.' });
     }

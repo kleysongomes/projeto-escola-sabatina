@@ -10,7 +10,11 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'https://projeto-escola-sabatina.onrender.com',
-  ]
+  ],
+  // Permite explicitamente os métodos HTTP que nossa API usa
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  // Permite os cabeçalhos customizados que o frontend envia
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 
@@ -26,7 +30,7 @@ app.use('/api/lessons', lessonRoutes);
 const reviewRoutes = require('./routes/reviewRoutes');
 app.use('/api/reviews', reviewRoutes);
 
-// Importa e usa as rotas de bug report ---
+// Importa e usa as rotas de bug report
 const bugRoutes = require('./routes/bugRoutes');
 app.use('/api/bugs', bugRoutes);
 

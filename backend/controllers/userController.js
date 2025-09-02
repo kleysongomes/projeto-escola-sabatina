@@ -2,7 +2,6 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Função auxiliar para padronizar o texto (Ex: "sao paulo" -> "Sao Paulo")
 const toTitleCase = (str) => {
   if (!str) return '';
   return str
@@ -31,12 +30,18 @@ const registerUser = async (req, res) => {
     const values = [usuario, senha_hash, paisPadronizado, estadoPadronizado, cidadePadronizada, igreja_id];
     
     const result = await db.query(insertQuery, values);
-    res.status(201).json(result.rows[0]);
+    const newUser = result.rows[0];
+
+    console.info(`INFO: Novo usuário registrado: "${newUser.usuario}" (ID: ${newUser.id}).`);
+
+    res.status(201).json(newUser);
   } catch (error) {
     if (error.code === '23505') {
+      // Usamos console.warn para erros esperados de validação
+      console.warn(`WARN: Tentativa de registro com usuário duplicado: "${usuario}".`);
       return res.status(409).json({ error: 'Este nome de usuário já está em uso.' });
     }
-    console.error("Erro ao registrar usuário:", error);
+    console.error(`Erro ao registrar usuário "${usuario}":`, error);
     res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
   }
 };
@@ -47,22 +52,28 @@ const loginUser = async (req, res) => {
     const userQuery = 'SELECT * FROM usuarios WHERE usuario = $1';
     const result = await db.query(userQuery, [usuario]);
     if (result.rows.length === 0) {
+      console.warn(`WARN: Tentativa de login falhou (usuário não encontrado): "${usuario}".`);
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(senha, user.senha_hash);
     if (!isMatch) {
+      console.warn(`WARN: Tentativa de login falhou (senha incorreta) para o usuário: "${usuario}".`);
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
+    
     const payload = { 
       id: user.id, 
       usuario: user.usuario,
       isAdmin: user.is_admin
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    console.info(`INFO: Usuário "${user.usuario}" (ID: ${user.id}) logado com sucesso.`);
+
     res.json({ token });
   } catch (error) {
-    console.error("Erro no login:", error);
+    console.error(`Erro no login do usuário "${usuario}":`, error);
     res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
   }
 };

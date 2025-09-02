@@ -1,12 +1,9 @@
 const db = require('../config/db');
 
 const createBugReport = async (req, res) => {
-  // A ID do usuário vem do token, pois a rota será protegida
   const userId = req.user.id;
-  // A descrição e a URL vêm do corpo da requisição
   const { description, pageUrl } = req.body;
 
-  // Validação simples
   if (!description || description.trim() === '') {
     return res.status(400).json({ error: 'A descrição do bug não pode estar vazia.' });
   }
@@ -19,7 +16,11 @@ const createBugReport = async (req, res) => {
     `;
     const values = [userId, description, pageUrl];
 
-    await db.query(insertQuery, values);
+    const result = await db.query(insertQuery, values);
+    const newBugReportId = result.rows[0].id;
+
+    // Log funcional adicionado
+    console.info(`INFO: Usuário ${userId} criou o report de bug #${newBugReportId}.`);
 
     res.status(201).json({ message: 'Report de bug enviado com sucesso. Obrigado pela sua ajuda!' });
   } catch (error) {
