@@ -84,6 +84,8 @@ const showInstallBanner = ref(false);
 const authStore = useAuthStore();
 
 onMounted(() => {
+  window.scrollTo(0, 0);
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     installPromptEvent.value = e;
@@ -171,26 +173,22 @@ const writeAnother = () => {
   flex-direction: column; 
   gap: 1.5rem;
 }
-
 .lesson-content {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 .banner-feed {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .feed-banner-image {
   width: 100%;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-
 .loading, .error-message { 
   text-align: center; 
   margin-top: 4rem; 
