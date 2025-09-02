@@ -8,7 +8,7 @@
         <span class="lesson-date">Título de hoje {{ lesson.date }}</span>
         <h1 class="lesson-title">{{ lesson.title }}</h1>
       </div>
-      <br/>
+      
       <div class="card review-card">
         <form v-if="!hasSubmittedToday" @submit.prevent="handleSubmitReview">
           <h2 class="form-title">Qual foi o seu aprendizado?</h2>
@@ -19,9 +19,9 @@
               rows="8"
               required
               class="input-field"
-              maxlength="300" 
+              maxlength="500" 
             ></textarea>
-            <small class="char-counter">{{ reviewContent.length }} / 300</small>
+            <small class="char-counter">{{ reviewContent.length }} / 500</small>
           </div>
           
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
@@ -40,6 +40,16 @@
           </button>
         </div>
       </div>
+
+      <div v-if="bannerImages.length > 0" class="banner-feed">
+        <img 
+          v-for="(src, index) in bannerImages" 
+          :key="index" 
+          :src="src" 
+          alt="Banner" 
+          class="feed-banner-image" 
+        />
+      </div>
     </div>
 
     <div v-if="showInstallBanner" class="install-banner">
@@ -57,7 +67,11 @@ import { useToast } from 'vue-toastification';
 import { CheckCircle2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 
-// O script permanece o mesmo, a validação principal é feita pelo maxlength no template
+const bannerModules = import.meta.glob('@/assets/banners/*.*', { eager: true });
+const bannerImages = ref(
+  Object.values(bannerModules).map((module) => module.default)
+);
+
 const lesson = ref(null);
 const reviewContent = ref('');
 const isLoading = ref(true);
@@ -80,12 +94,10 @@ onMounted(() => {
   const todayStr = new Date().toLocaleDateString('pt-BR');
 
   if (cachedLesson && cachedLesson.dateStr === todayStr) {
-    console.log("Lição carregada do cache!");
     lesson.value = cachedLesson.data;
     hasSubmittedToday.value = cachedLesson.data.userHasSubmitted;
     isLoading.value = false;
   } else {
-    console.log("Cache antigo ou inexistente. Buscando na API.");
     fetchLesson();
   }
 });
@@ -105,7 +117,6 @@ const fetchLesson = async () => {
 
   } catch (err) {
     error.value = 'Não foi possível carregar a lição de hoje.';
-    console.error(err);
   } finally {
     isLoading.value = false;
   }
@@ -115,8 +126,6 @@ const triggerInstallPrompt = async () => {
   if (!installPromptEvent.value) return;
   installPromptEvent.value.prompt();
   const { outcome } = await installPromptEvent.value.userChoice;
-  if (outcome === 'accepted') console.log('Usuário aceitou a instalação do PWA');
-  else console.log('Usuário recusou a instalação do PWA');
   installPromptEvent.value = null;
   showInstallBanner.value = false;
 };
@@ -140,16 +149,12 @@ const handleSubmitReview = async () => {
     }
     
     const cachedLesson = JSON.parse(localStorage.getItem('cachedLesson'));
-    if (cachedLesson) {
-      if (!authStore.user?.isAdmin) {
-        cachedLesson.data.userHasSubmitted = true;
-        localStorage.setItem('cachedLesson', JSON.stringify(cachedLesson));
-      }
+    if (cachedLesson && !authStore.user?.isAdmin) {
+      cachedLesson.data.userHasSubmitted = true;
+      localStorage.setItem('cachedLesson', JSON.stringify(cachedLesson));
     }
-
   } catch (err) {
     toast.error(err.response?.data?.error || 'Ocorreu um erro ao enviar.');
-    console.error(err);
   } finally {
     isSubmitting.value = false;
   }
@@ -161,12 +166,31 @@ const writeAnother = () => {
 </script>
 
 <style scoped>
-/* Os estilos permanecem os mesmos da versão anterior */
 .home-container { 
   display: flex; 
   flex-direction: column; 
   gap: 1.5rem;
 }
+
+.lesson-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.banner-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feed-banner-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 .loading, .error-message { 
   text-align: center; 
   margin-top: 4rem; 
@@ -193,19 +217,13 @@ const writeAnother = () => {
   margin-bottom: 1rem; 
   text-align: center; 
 }
-
-/* 2. ADICIONADO: Wrapper para textarea e contador */
 .textarea-wrapper {
   position: relative;
   margin-bottom: 1.5rem;
 }
-
 textarea { 
   resize: vertical; 
-  /* removemos a margem daqui para o wrapper controlar */
 }
-
-/* 3. ADICIONADO: Estilo do contador */
 .char-counter {
   position: absolute;
   bottom: 10px;
@@ -213,7 +231,6 @@ textarea {
   font-size: 0.8rem;
   color: var(--cor-texto-suave);
 }
-
 .btn-primary:disabled {
   background-color: var(--cor-texto-suave);
   border-bottom-color: var(--cor-texto-suave);
