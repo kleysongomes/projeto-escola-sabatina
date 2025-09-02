@@ -135,7 +135,7 @@ const handleShare = async (review) => {
   
   const shareData = {
     title: 'Review da Lição - Stud+',
-    text: `Confira minha review de hoje no Stud+:\n\n"${review.conteudo}"\n\nEstude você também:`,
+    text: `Confira essa review de hoje no Stud+:\n\n"${review.conteudo}"\n\nEstude você também:`,
     url: siteUrl
   };
 
