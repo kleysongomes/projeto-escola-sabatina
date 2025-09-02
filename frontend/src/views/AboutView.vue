@@ -20,6 +20,23 @@
     </div>
 
     <div class="card info-card">
+      <h2 class="section-title"><Award :size="20" /> Como Funciona a Pontuação</h2>
+      <p>A pontuação é calculada com base em dois critérios principais:</p>
+      <ul>
+        <li><strong>Pontos por Horário:</strong> Quanto mais cedo você estuda e envia sua review, mais pontos ganha!
+          <ul>
+            <li>04:00 - 06:00: <strong>100 pts</strong></li>
+            <li>06:01 - 12:00: <strong>75 pts</strong></li>
+            <li>12:01 - 18:00: <strong>50 pts</strong></li>
+            <li>Depois das 18:01: <strong>25 pts</strong></li>
+            <li>De madrugada (00:01 - 04:00): <strong>10 pts</strong></li>
+          </ul>
+        </li>
+        <li><strong>Pontos por Conteúdo:</strong> Reviews mais detalhadas ganham mais pontos (até 50 pts por conteúdo).</li>
+      </ul>
+    </div>
+
+    <div class="card info-card">
       <h2 class="section-title"><GitBranch :size="20" /> Versão</h2>
       <p>Você está usando a versão: <strong>{{ appVersion }}</strong></p>
     </div>
@@ -32,6 +49,9 @@
         <li><strong>NOVO</strong>: Reportar BUGs.</li>
         <li><strong>NOVO</strong>: Cadastro por Igreja</li>
         <li><strong>NOVO</strong>: Filtro no Ranking</li>
+        <li><strong>NOVO</strong>: Inclusão de Banner</li>
+        <li><strong>NOVO</strong>: Detalhes de pontuação</li>
+        <li><strong>Bug Corrigido</strong>: Remover review(Moderadores)</li>
       </ul>
       
       <a 
@@ -81,7 +101,8 @@
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { version } from '../../package.json';
-import { Info, GitBranch, UserCircle, Heart, HeartHandshake, PartyPopper, Bug, ChevronRight } from 'lucide-vue-next'; 
+// 2. Ícone de 'Award' (prêmio) adicionado à importação
+import { Info, GitBranch, UserCircle, Heart, HeartHandshake, PartyPopper, Bug, ChevronRight, Award } from 'lucide-vue-next'; 
 import VueQrcode from 'vue-qrcode';
 import { useToast } from 'vue-toastification';
 
@@ -102,6 +123,8 @@ const copyPixKey = async () => {
 </script>
 
 <style scoped>
+/* Nenhum estilo novo precisou ser adicionado, pois reutilizamos os existentes! */
+/* Os estilos abaixo são os que você já tinha no arquivo. */
 .about-container {
   display: flex;
   flex-direction: column;
@@ -136,6 +159,11 @@ const copyPixKey = async () => {
 }
 .info-card ul {
   padding-left: 1.5rem;
+}
+
+.info-card ul ul {
+  padding-left: 1rem;
+  margin-top: 0.5rem;
 }
 .info-card strong {
   color: var(--cor-texto);
