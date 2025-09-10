@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres:16-alpine
@@ -9,6 +8,13 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: always
+    # ADICIONADO: Verificação de saúde para o banco de dados.
+    # Ele verifica se o PostgreSQL está pronto para aceitar conexões.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d sabbath_school_reviews"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
@@ -19,8 +25,10 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: production
+    # ATUALIZADO: Agora o backend espera o banco de dados estar "saudável".
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
