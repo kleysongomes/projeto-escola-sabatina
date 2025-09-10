@@ -37,7 +37,6 @@ const registerUser = async (req, res) => {
     res.status(201).json(newUser);
   } catch (error) {
     if (error.code === '23505') {
-      // Usamos console.warn para erros esperados de validação
       console.warn(`WARN: Tentativa de registro com usuário duplicado: "${usuario}".`);
       return res.status(409).json({ error: 'Este nome de usuário já está em uso.' });
     }
@@ -55,6 +54,7 @@ const loginUser = async (req, res) => {
       console.warn(`WARN: Tentativa de login falhou (usuário não encontrado): "${usuario}".`);
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
+
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(senha, user.senha_hash);
     if (!isMatch) {
@@ -62,18 +62,38 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Usuário ou senha inválidos.' });
     }
     
-    const payload = { 
+    const accessTokenPayload = { 
       id: user.id, 
       usuario: user.usuario,
       isAdmin: user.is_admin
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const accessToken = jwt.sign(accessTokenPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION });
+
+    const refreshTokenPayload = { id: user.id };
+    const refreshToken = jwt.sign(refreshTokenPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION });
+    
+    const salt = await bcrypt.genSalt(10);
+    const refreshTokenHash = await bcrypt.hash(refreshToken, salt);
+    await db.query('UPDATE usuarios SET refresh_token = $1 WHERE id = $2', [refreshTokenHash, user.id]);
 
     console.info(`INFO: Usuário "${user.usuario}" (ID: ${user.id}) logado com sucesso.`);
 
-    res.json({ token });
+    res.json({ accessToken, refreshToken });
+
   } catch (error) {
     console.error(`Erro no login do usuário "${usuario}":`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
+const logoutUser = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    await db.query('UPDATE usuarios SET refresh_token = NULL WHERE id = $1', [userId]);
+    console.info(`INFO: Usuário (ID: ${userId}) deslogado com sucesso.`);
+    res.status(200).json({ message: 'Logout realizado com sucesso.' });
+  } catch (error) {
+    console.error(`Erro no logout do usuário (ID: ${userId}):`, error);
     res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
   }
 };
@@ -162,6 +182,7 @@ const checkUsername = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
   getUserRanking,
   checkUsername,
 };
