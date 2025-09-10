@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS igrejas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Cria a tabela de usuários, agora com a referência para igrejas
+-- Cria a tabela de usuários
 CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     usuario VARCHAR(50) UNIQUE NOT NULL,
@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     data_criacao TIMESTAMPTZ DEFAULT NOW(),
     is_admin BOOLEAN NOT NULL DEFAULT false,
     igreja_id INT,
+    refresh_token TEXT,
     CONSTRAINT fk_igreja
       FOREIGN KEY(igreja_id) 
       REFERENCES igrejas(id)
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     conteudo TEXT NOT NULL,
     quantidade_caracteres INT NOT NULL,
     pontos_ganhos INT NOT NULL,
-    data_criacao TIMESTAMPTZ DEFAULT NOW(),
+    data_criacao TIMESTAMpTZ DEFAULT NOW(),
     CONSTRAINT fk_usuario
         FOREIGN KEY(id_usuario) 
         REFERENCES usuarios(id)
