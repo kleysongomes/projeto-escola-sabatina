@@ -131,7 +131,7 @@ const handleReport = async (reviewId) => {
 };
 
 const handleShare = async (review) => {
-  const siteUrl = 'https://projeto-escola-sabatina.onrender.com/';
+  const siteUrl = 'https://www.studup.app/';
   
   const shareData = {
     title: 'Review da Lição - Stud+',
