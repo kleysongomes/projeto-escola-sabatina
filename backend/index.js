@@ -9,7 +9,8 @@ app.use(express.json());
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://studup.app/',
+    'https://studup.app',
+    'https://www.studup.app'
   ],
   // Permite explicitamente os métodos HTTP que nossa API usa
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
