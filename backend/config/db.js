@@ -3,16 +3,16 @@ const { Pool } = require('pg');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Configuração de conexão
 const connectionConfig = {
-  // Em produção, usamos a URL completa fornecida pelo serviço de hospedagem
   connectionString: process.env.DATABASE_URL,
-  // Em produção, a conexão SSL é obrigatória e não deve ser rejeitada
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  
+  // Agora, o SSL só é ativado se a variável DATABASE_SSL for explicitamente 'true'.
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };
 
-// Se não estivermos em produção, usamos as variáveis de ambiente individuais
+// A lógica para desenvolvimento local (não-produção) permanece a mesma
 if (!isProduction) {
+  delete connectionConfig.connectionString; // Removemos para usar os campos individuais
   connectionConfig.user = process.env.DB_USER;
   connectionConfig.password = process.env.DB_PASSWORD;
   connectionConfig.host = process.env.DB_HOST;
