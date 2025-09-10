@@ -9,9 +9,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     restart: always
     ports:
-      # Mapeia a porta 5432 do container para a porta 5432
-      # apenas na interface localhost (127.0.0.1) do servidor.
-      # Isso mantém o banco seguro da internet.
       - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d sabbath_school_reviews"]
@@ -22,7 +19,6 @@ services:
   backend:
     build: ./backend
     restart: always
-    # A porta não é mais exposta publicamente. Caddy gerencia o acesso.
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -34,7 +30,6 @@ services:
   frontend:
     build: ./frontend
     restart: always
-    # A porta não é mais exposta publicamente. Caddy gerencia o acesso.
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
 
@@ -42,8 +37,8 @@ services:
     image: caddy:2-alpine
     restart: always
     ports:
-      - "80:80"   # Porta HTTP para o desafio SSL
-      - "443:443" # Porta HTTPS para o site seguro
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
