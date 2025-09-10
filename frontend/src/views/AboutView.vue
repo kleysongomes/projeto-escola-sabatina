@@ -44,14 +44,10 @@
     <div class="card info-card">
       <h2 class="section-title"><PartyPopper  :size="20" /> O que há de novo </h2>
       <ul>
-        <li><strong>NOVO</strong>: Curtir Review.</li>
-        <li><strong>NOVO</strong>: Reportar Review.</li>
-        <li><strong>NOVO</strong>: Reportar BUGs.</li>
-        <li><strong>NOVO</strong>: Cadastro por Igreja</li>
-        <li><strong>NOVO</strong>: Filtro no Ranking</li>
-        <li><strong>NOVO</strong>: Inclusão de Banner</li>
-        <li><strong>NOVO</strong>: Detalhes de pontuação</li>
-        <li><strong>Bug Corrigido</strong>: Remover review(Moderadores)</li>
+        <li><strong>NOVO</strong>: Login único(a cada 30 dias)</li>
+        <li><strong>NOVO</strong>: Serviço publicado</li>
+        <li><strong>NOVO</strong>: Servidor dedicado 24/7</li>
+        <li><strong>NOVO</strong>: Melhoria de Layout</li>
       </ul>
       
       <a 

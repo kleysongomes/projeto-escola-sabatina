@@ -1,22 +1,25 @@
 <template>
-  <header class="header">
-    <div class="left-actions">
-      <RouterLink to="/sobre" class="header-btn" aria-label="Sobre o projeto">
-        <HelpCircle :size="22" />
-      </RouterLink>
-    </div>
+  <header class="header-background">
+    <div class="header-content">
+      <div class="left-actions">
+        <RouterLink to="/sobre" class="header-btn" aria-label="Sobre o projeto">
+          <HelpCircle :size="22" />
+        </RouterLink>
+      </div>
 
-    <img :src="logoUrl" alt="Stud+ Logo" class="header-logo" />
+      <img :src="logoUrl" alt="Stud+ Logo" class="header-logo" />
 
-    <div class="right-actions">
-      <button @click="handleLogout" class="header-btn" aria-label="Sair">
-        <LogOut :size="20" />
-      </button>
+      <div class="right-actions">
+        <button @click="handleLogout" class="header-btn" aria-label="Sair">
+          <LogOut :size="20" />
+        </button>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup>
+// Nenhuma alteração no script
 import { useRouter, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { LogOut, HelpCircle } from 'lucide-vue-next';
@@ -32,22 +35,30 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
-.header {
+/* O container externo que cuida do fundo e da posição */
+.header-background {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  max-width: 500px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem 1rem;
+  width: 100%; /* Ocupa a largura toda */
   background-color: var(--cor-container);
   border-bottom: 1px solid var(--cor-borda);
   z-index: 10;
-  height: 60px;
+  display: flex;
+  justify-content: center; /* Centraliza o conteúdo interno */
 }
+
+/* O container interno que limita o conteúdo ao layout do app */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 500px; /* Largura máxima do conteúdo */
+  height: 60px;
+  padding: 0 1.5rem; /* Padding para as laterais */
+}
+
 .left-actions, .right-actions {
   flex: 1;
 }
@@ -55,11 +66,9 @@ const handleLogout = () => {
   display: flex;
   justify-content: flex-end;
 }
-
 .header-logo {
-  height: 80px; /* Ajuste esta altura conforme o design da sua logo */
+  height: 80px;
 }
-
 .header-btn {
   background: none;
   border: none;
