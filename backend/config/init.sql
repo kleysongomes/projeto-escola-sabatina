@@ -1,7 +1,14 @@
--- A cláusula "IF NOT EXISTS" garante que o comando só será executado
--- se a tabela ainda não existir. Isso evita erros se você iniciar
--- o servidor várias vezes.
+-- Cria a tabela de igrejas PRIMEIRO, pois os usuários dependem dela.
+CREATE TABLE IF NOT EXISTS igrejas (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL UNIQUE,
+  cidade VARCHAR(255),
+  estado VARCHAR(100),
+  pais VARCHAR(100),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
+-- Cria a tabela de usuários, agora com a referência para igrejas
 CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     usuario VARCHAR(50) UNIQUE NOT NULL,
@@ -10,9 +17,16 @@ CREATE TABLE IF NOT EXISTS usuarios (
     estado VARCHAR(100),
     cidade VARCHAR(100),
     pontos_totais INT DEFAULT 0,
-    data_criacao TIMESTAMPTZ DEFAULT NOW()
+    data_criacao TIMESTAMPTZ DEFAULT NOW(),
+    is_admin BOOLEAN NOT NULL DEFAULT false,
+    igreja_id INT,
+    CONSTRAINT fk_igreja
+      FOREIGN KEY(igreja_id) 
+      REFERENCES igrejas(id)
+      ON DELETE SET NULL
 );
 
+-- Cria a tabela de reviews
 CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -21,9 +35,38 @@ CREATE TABLE IF NOT EXISTS reviews (
     quantidade_caracteres INT NOT NULL,
     pontos_ganhos INT NOT NULL,
     data_criacao TIMESTAMPTZ DEFAULT NOW(),
-
     CONSTRAINT fk_usuario
         FOREIGN KEY(id_usuario) 
         REFERENCES usuarios(id)
         ON DELETE CASCADE
+);
+
+-- Cria as tabelas de ligação para likes e reports
+CREATE TABLE IF NOT EXISTS review_likes (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  review_id INT NOT NULL,
+  CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_review FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+  UNIQUE(user_id, review_id)
+);
+
+CREATE TABLE IF NOT EXISTS review_reports (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  review_id INT NOT NULL,
+  CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_review FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+  UNIQUE(user_id, review_id)
+);
+
+-- Cria a tabela para os reports de bugs
+CREATE TABLE IF NOT EXISTS bug_reports (
+  id SERIAL PRIMARY KEY,
+  user_id INT,
+  description TEXT NOT NULL,
+  page_url VARCHAR(255),
+  status VARCHAR(50) NOT NULL DEFAULT 'aberto',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
