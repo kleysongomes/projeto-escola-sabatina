@@ -9,7 +9,7 @@ app.use(express.json());
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://projeto-escola-sabatina.onrender.com',
+    'http://64.227.111.112',
   ],
   // Permite explicitamente os métodos HTTP que nossa API usa
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
