@@ -7,26 +7,51 @@ const api = axios.create({
     : window.VITE_API_BASE_URL,
 });
 
-// Este código será executado para CADA resposta que a API nos der.
+// Este código será executado ANTES de CADA requisição ser enviada.
+api.interceptors.request.use(
+  (config) => {
+    const authStore = useAuthStore();
+    if (authStore.accessToken) {
+      // Garante que o token mais recente esteja sempre no cabeçalho
+      config.headers['Authorization'] = `Bearer ${authStore.accessToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+
 api.interceptors.response.use(
-  // Se a resposta for bem-sucedida, apenas a repassamos.
   (response) => response,
 
   // Se a resposta contiver um erro...
-  (error) => {
-    // Verificamos se o erro é o "401 Unauthorized" (token inválido/expirado).
-    if (error.response && error.response.status === 401) {
-      // Usamos o nosso authStore para limpar os dados do usuário.
-      const authStore = useAuthStore();
-      authStore.logout();
+  async (error) => {
+    const originalRequest = error.config;
+    const authStore = useAuthStore();
 
-      // Forçamos o redirecionamento para a página de login.
-      // Usar window.location.href garante que todo o estado da aplicação seja limpo.
-      window.location.href = '/login';
+    // Se o erro for 401 E não for uma tentativa de retry E não for na rota de refresh
+    if (error.response.status === 401 && !originalRequest._retry && error.config.url !== '/auth/refresh') {
+      originalRequest._retry = true; // Marca esta requisição para não tentar renovar de novo infinitamente
+
+      try {
+        console.log("Access token expirado. Tentando renovar...");
+        // Tenta usar o refresh token para obter um novo access token
+        await authStore.refreshAccessToken();
+        
+        // Se a renovação foi bem-sucedida, o novo token já está no header pelo interceptor de requisição.
+        // Agora, tentamos a requisição original que falhou novamente.
+        console.log("Token renovado. Repetindo a requisição original.");
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        // Se a renovação do token falhar, desloga o usuário.
+        console.error("Refresh token inválido ou expirado. Deslogando usuário.");
+        authStore.logout();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
 
-    // Se for qualquer outro erro, apenas o rejeitamos para que o
-    // componente que fez a chamada possa tratá-lo (ex: mostrar um toast).
     return Promise.reject(error);
   }
 );
