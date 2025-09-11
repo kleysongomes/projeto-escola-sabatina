@@ -1,42 +1,39 @@
 # Stud+ - Backend
 
-Este é o serviço de backend para a aplicação de Reviews da Lição da Escola Sabatina. É uma API RESTful construída com Node.js e Express, conectada a um banco de dados PostgreSQL.
+Este é o serviço de backend para a aplicação Stud+. É uma API RESTful construída com Node.js e Express, conectada a um banco de dados PostgreSQL e projetada para ser executada em um ambiente containerizado com Docker.
 
 ## ✨ Funcionalidades
 
--   **Autenticação de Usuários:** Cadastro e Login com JSON Web Tokens (JWT).
--   **Segurança:** Senhas são armazenadas de forma segura usando hashing com `bcryptjs`.
--   **Gamificação:** Um sistema de pontos é calculado no servidor com base no horário e no conteúdo das reviews.
--   **Regras de Negócio:** Limita o envio de reviews para uma por usuário por dia.
--   **API Externa:** Consome a API da Adventech para buscar dinamicamente a lição do dia.
--   **Paginação:** As rotas de listagem (ranking e reviews) são paginadas para melhor performance.
--   **Banco de Dados Automatizado:** As tabelas são criadas automaticamente na inicialização do servidor.
+-   **Autenticação Robusta:** Sistema de **Access Tokens** (curta duração) e **Refresh Tokens** (longa duração) para manter o usuário logado de forma segura e contínua.
+-   **Sistema de Permissões:** Distinção entre usuários normais e **Administradores**, com rotas e lógicas específicas para cada um.
+-   **Gamificação:** Sistema de pontos calculado no servidor com base no horário de envio e no tamanho da review.
+-   **Interações Sociais:** Endpoints para **curtir/descurtir**, **reportar** e (para admins) **deletar** reviews, com a devida atualização dos pontos do usuário.
+-   **Gerenciamento de Dados:**
+    -   Rotas para **listar e criar igrejas** de forma dinâmica.
+    -   Rotas para o **perfil do usuário**, permitindo buscar dados cadastrais, reviews escritas e reviews curtidas.
+    -   Endpoint para **report de bugs**.
+-   **Validação e Padronização:** Validação de dados na entrada e padronização de campos de texto (país, cidade, etc.) para manter a consistência do banco de dados.
+-   **Banco de Dados Automatizado:** Um script `init.sql` garante que todo o esquema do banco de dados (incluindo todas as tabelas e relações) seja criado automaticamente em um novo ambiente.
 
 ## 🛠️ Tecnologias Utilizadas
 
--   **Node.js**
--   **Express.js**
+-   **Node.js** com **Express.js**
 -   **PostgreSQL**
 -   **Docker** e **Docker Compose**
--   **Bibliotecas Principais:** `pg` (PostgreSQL Driver), `jsonwebtoken`, `bcryptjs`, `cors`, `axios`.
+-   **Bibliotecas Principais:** `pg` (PostgreSQL Driver), `jsonwebtoken`, `bcryptjs`, `cors`, `axios`, `dotenv`.
 
 ## ⚙️ Pré-requisitos
 
--   [Node.js](https://nodejs.org/) (versão 18 ou superior)
+-   [Node.js](https://nodejs.org/) (versão 20 ou superior)
 -   [Docker](https://www.docker.com/products/docker-desktop/)
 
-## 🚀 Instalação e Execução
+## 🚀 Instalação e Execução Local
 
-1.  **Clone o repositório** (caso ainda não tenha feito):
-    ```bash
-    git clone <url-do-seu-repositorio>
-    cd projeto-escola-sabatina
-    ```
+1.  **Clone o repositório** e navegue até a pasta do projeto.
 
-2.  **Inicie o Banco de Dados com Docker:**
-    * A partir da pasta raiz do projeto (`projeto-escola-sabatina`), execute:
+2.  **Inicie o Banco de Dados:** A partir da pasta raiz do projeto, use o `docker-compose.yml` de desenvolvimento para subir o banco:
     ```bash
-    docker-compose up -d
+    docker compose up -d
     ```
 
 3.  **Configure o Backend:**
@@ -50,33 +47,66 @@ Este é o serviço de backend para a aplicação de Reviews da Lição da Escola
     ```
 
 4.  **Crie o Arquivo de Variáveis de Ambiente:**
-    * Crie um arquivo chamado `.env` na raiz da pasta `backend`.
-    * Copie e cole o conteúdo abaixo nele:
+    * Crie um arquivo chamado `.env` na pasta `backend`.
+    * Cole o conteúdo abaixo. **É crucial usar segredos fortes e aleatórios.**
     ```ini
-    # Credenciais do banco de dados (devem ser as mesmas do docker-compose.yml)
+    # Credenciais do banco de dados local (correspondem ao docker-compose.yml)
     DB_USER=admin
-    DB_PASSWORD=supersecretpassword
+    DB_PASSWORD=password
     DB_HOST=localhost
     DB_PORT=5432
     DB_DATABASE=sabbath_school_reviews
 
-    # Chave secreta para assinar os JWTs
-    JWT_SECRET=este_e_um_segredo_muito_longo_e_dificil_de_adivinhar_12345
+    # Chaves secretas para os tokens JWT
+    ACCESS_TOKEN_SECRET=seu_segredo_curto_e_aleatorio_aqui
+    REFRESH_TOKEN_SECRET=seu_segredo_MUITO_MAIS_LONGO_e_diferente_aqui
+
+    # Duração dos tokens
+    ACCESS_TOKEN_EXPIRATION="15m"
+    REFRESH_TOKEN_EXPIRATION="30d"
     ```
 
-5.  **Inicie o Servidor de Desenvolvimento:**
+5.  **Inicie o Servidor:**
     ```bash
     npm run dev
     ```
     * O servidor estará rodando em `http://localhost:3000`.
 
-## Endpoints da API
+## 📖 Endpoints da API
 
-| Método | Rota                     | Protegida | Descrição                               | Corpo da Requisição (Exemplo)                                    |
-| :----- | :----------------------- | :-------- | :-------------------------------------- | :--------------------------------------------------------------- |
-| `POST` | `/api/usuarios/register` | Não       | Registra um novo usuário.               | `{ "usuario": "...", "senha": "...", "pais": "...", ... }`        |
-| `POST` | `/api/usuarios/login`    | Não       | Autentica um usuário e retorna um token.  | `{ "usuario": "...", "senha": "..." }`                             |
-| `GET`  | `/api/usuarios/ranking`  | Não       | Lista o ranking de usuários (paginado).   | Query Params: `?page=1`                                          |
-| `GET`  | `/api/lessons/today`     | **Sim** | Busca os dados da lição do dia atual.     | N/A                                                              |
-| `POST` | `/api/reviews`           | **Sim** | Submete uma nova review.                | `{ "conteudo": "...", "indiceLicao": "..." }`                   |
-| `GET`  | `/api/reviews`           | Não       | Lista todas as reviews (paginado).      | Query Params: `?page=1`                                          |
+### Autenticação (`/api/auth`)
+| Método | Rota       | Protegida | Descrição                     |
+| :----- | :--------- | :-------- | :------------------------------ |
+| `POST` | `/refresh` | Não       | Renova um Access Token expirado. |
+
+### Usuários (`/api/usuarios`)
+| Método | Rota               | Protegida | Descrição                                    |
+| :----- | :----------------- | :-------- | :------------------------------------------- |
+| `POST` | `/register`        | Não       | Registra um novo usuário.                    |
+| `POST` | `/login`           | Não       | Autentica um usuário e retorna os tokens.      |
+| `POST` | `/logout`          | **Sim** | Invalida o Refresh Token do usuário no banco.  |
+| `POST` | `/check-username`  | Não       | Verifica se um nome de usuário está disponível. |
+| `GET`  | `/ranking`         | **Sim** | Lista o ranking de usuários (paginado e com filtros). |
+| `GET`  | `/me`              | **Sim** | Busca os dados do perfil do usuário logado.    |
+| `GET`  | `/me/reviews`      | **Sim** | Lista as reviews escritas pelo usuário logado. |
+| `GET`  | `/me/likes`        | **Sim** | Lista as reviews curtidas pelo usuário logado. |
+
+### Lições (`/api/lessons`)
+| Método | Rota     | Protegida | Descrição                     |
+| :----- | :------- | :-------- | :------------------------------ |
+| `GET`  | `/today` | **Sim** | Busca os dados da lição do dia. |
+
+### Reviews (`/api/reviews`)
+| Método   | Rota       | Protegida | Descrição                               |
+| :------- | :--------- | :-------- | :-------------------------------------- |
+| `GET`    | `/`        | **Sim** | Lista todas as reviews (paginado).      |
+| `POST`   | `/`        | **Sim** | Submete uma nova review.                |
+| `DELETE` | `/:id`     | **Admin** | Deleta uma review específica.           |
+| `POST`   | `/:id/like`  | **Sim** | Curte ou descurte uma review.         |
+| `POST`   | `/:id/report`| **Sim** | Reporta uma review.                   |
+
+### Igrejas (`/api/igrejas`)
+| Método | Rota | Protegida | Descrição                     |
+| :----- | :--- | :-------- | :------------------------------ |
+| `GET`  | `/`  | Não       | Lista todas as igrejas. |
+| `POST` | `/`  | Não       | Cria uma nova igreja. |
