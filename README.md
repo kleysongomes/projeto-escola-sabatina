@@ -1,152 +1,187 @@
-# README FRONT + BACK
+# Stud+ \| Check-in da Lição
 
-## Stud+ - Frontend
+![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vue.js&logoColor=4FC08D)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-Este é o frontend para a aplicação de Reviews da Lição da Escola Sabatina. É uma Single Page Application (SPA) construída com Vue.js (Vue 3), utilizando Vite como ferramenta de build. A aplicação é focada em uma experiência mobile-first.
+Um aplicativo de gamificação para o estudo diário da Lição da Escola
+Sabatina Jovem, focado em criar uma comunidade engajada através de
+reviews e interações.
 
-## ✨ Funcionalidades
+## 📖 Sobre o Projeto
 
--   **Interface Reativa:** Construída com o ecossistema moderno do Vue 3 (Composition API).
--   **Roteamento:** Navegação entre telas (Login, Cadastro, Home, Ranking, Reviews) gerenciada pelo `Vue Router`.
--   **Gerenciamento de Estado:** O estado de autenticação do usuário é gerenciado de forma centralizada com o `Pinia`.
--   **Persistência de Login:** O usuário permanece logado mesmo que a página seja recarregada, graças ao `localStorage`.
--   **Rotas Protegidas:** O acesso às telas principais é bloqueado para usuários não autenticados.
--   **Componentização:** A aplicação é dividida em componentes reutilizáveis e visões de página.
--   **Design Mobile-First:** O layout e os estilos são pensados primariamente para dispositivos móveis.
+O Stud+ foi criado para ser um parceiro no estudo diário da Lição da
+Escola Sabatina. A plataforma permite que os usuários façam um
+"check-in" diário, escrevam uma breve reflexão sobre o aprendizado, e
+ganhem pontos com base no horário e na qualidade da sua review. O
+objetivo é transformar o hábito do estudo em uma jornada interativa e
+comunitária.
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ Funcionalidades Principais
 
--   **Vue.js (Vue 3)**
--   **Vite**
--   **Vue Router**
--   **Pinia**
--   **Axios**
--   **ESLint** e **Prettier** para qualidade e formatação de código.
-
-## ⚙️ Pré-requisitos
-
--   [Node.js](https://nodejs.org/) (versão 18 ou superior)
--   O **servidor do backend** deve estar rodando para que a aplicação funcione.
-
-## 🚀 Instalação e Execução
-
-1.  **Clone o repositório** (caso ainda não tenha feito):
-    ```bash
-    git clone <url-do-seu-repositorio>
-    cd projeto-escola-sabatina
-    ```
-
-2.  **Configure o Frontend:**
-    * Navegue até a pasta do frontend:
-    ```bash
-    cd frontend
-    ```
-    * Instale as dependências:
-    ```bash
-    npm install
-    ```
-
-3.  **Crie o Arquivo de Variáveis de Ambiente:**
-    * Na raiz da pasta `frontend`, crie um arquivo chamado `.env.local`.
-    * Copie e cole o conteúdo abaixo nele. Este arquivo informa ao nosso app Vue onde encontrar o backend.
-    ```ini
-    VITE_API_BASE_URL=http://localhost:3000/api
-    ```
-
-4.  **Inicie o Servidor de Desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-    * O servidor de desenvolvimento do Vite geralmente roda em `http://localhost:5173`. A URL exata será exibida no seu terminal.
-
-## 📜 Scripts Disponíveis
-
--   `npm run dev`: Inicia o servidor de desenvolvimento com Hot-Reload.
--   `npm run build`: Compila a aplicação para produção.
--   `npm run preview`: Pré-visualiza a build de produção localmente.
--   `npm run lint`: Executa o linter para verificar a qualidade do código.
-
------------------------------------------------------------------------
-
-## Stud+ - Backend
-
-Este é o serviço de backend para a aplicação de Reviews da Lição da Escola Sabatina. É uma API RESTful construída com Node.js e Express, conectada a um banco de dados PostgreSQL.
-
-## ✨ Funcionalidades
-
--   **Autenticação de Usuários:** Cadastro e Login com JSON Web Tokens (JWT).
--   **Segurança:** Senhas são armazenadas de forma segura usando hashing com `bcryptjs`.
--   **Gamificação:** Um sistema de pontos é calculado no servidor com base no horário e no conteúdo das reviews.
--   **Regras de Negócio:** Limita o envio de reviews para uma por usuário por dia.
--   **API Externa:** Consome a API da Adventech para buscar dinamicamente a lição do dia.
--   **Paginação:** As rotas de listagem (ranking e reviews) são paginadas para melhor performance.
--   **Banco de Dados Automatizado:** As tabelas são criadas automaticamente na inicialização do servidor.
+-   **Gamificação do Estudo:** Sistema de pontos que incentiva o estudo
+    nos primeiros horários do dia.
+-   **Ranking de Usuários:** Tabela de classificação que pode ser
+    filtrada por país, estado, cidade e igreja.
+-   **Mural de Reviews:** Um feed com as reflexões mais recentes de
+    todos os usuários.
+-   **Interações Sociais:** Usuários podem curtir, compartilhar e
+    reportar reviews.
+-   **Moderação e Segurança:** Sistema de permissões de Administrador
+    para gerenciamento de conteúdo.
+-   **Progressive Web App (PWA):** O aplicativo pode ser instalado na
+    tela de início de dispositivos móveis para uma experiência nativa.
+-   **Cadastro Dinâmico de Igrejas:** Os usuários podem selecionar sua
+    igreja de uma lista ou adicionar uma nova durante o cadastro.
+-   **Feedback de Usuário:** Funcionalidade para reportar bugs e
+    sugestões.
 
 ## 🛠️ Tecnologias Utilizadas
 
--   **Node.js**
--   **Express.js**
--   **PostgreSQL**
--   **Docker** e **Docker Compose**
--   **Bibliotecas Principais:** `pg` (PostgreSQL Driver), `jsonwebtoken`, `bcryptjs`, `cors`, `axios`.
+#### **Backend**
 
-## ⚙️ Pré-requisitos
+-   **Node.js** com **Express.js** para a API RESTful.
+-   **PostgreSQL** como banco de dados.
+-   **Docker** e **Docker Compose** para orquestração dos serviços.
+-   **JWT (JSON Web Tokens)** para autenticação com sistema de
+    Access/Refresh Tokens.
+-   **Bcrypt.js** para hashing seguro de senhas.
 
--   [Node.js](https://nodejs.org/) (versão 18 ou superior)
--   [Docker](https://www.docker.com/products/docker-desktop/)
+#### **Frontend**
 
-## 🚀 Instalação e Execução
+-   **Vue.js (Vue 3)** com a Composition API e `<script setup>`.
+-   **Vite** como ferramenta de build.
+-   **Vue Router** para o roteamento de páginas.
+-   **Pinia** para gerenciamento de estado global.
+-   **Axios** para as chamadas à API.
+-   **Lucide Icons** para a iconografia.
 
-1.  **Clone o repositório** (caso ainda não tenha feito):
-    ```bash
-    git clone <url-do-seu-repositorio>
-    cd projeto-escola-sabatina
-    ```
+## 📂 Estrutura do Repositório
 
-2.  **Inicie o Banco de Dados com Docker:**
-    * A partir da pasta raiz do projeto (`projeto-escola-sabatina`), execute:
-    ```bash
-    docker-compose up -d
-    ```
+Este é um monorepo que contém as duas aplicações principais:
 
-3.  **Configure o Backend:**
-    * Navegue até a pasta do backend:
-    ```bash
-    cd backend
-    ```
-    * Instale as dependências:
-    ```bash
-    npm install
-    ```
+├── backend/ \# Aplicação Node.js (API) 
 
-4.  **Crie o Arquivo de Variáveis de Ambiente:**
-    * Crie um arquivo chamado `.env` na raiz da pasta `backend`.
-    * Copie e cole o conteúdo abaixo nele:
-    ```ini
-    # Credenciais do banco de dados (devem ser as mesmas do docker-compose.yml)
-    DB_USER=admin
-    DB_PASSWORD=supersecretpassword
-    DB_HOST=localhost
-    DB_PORT=5432
-    DB_DATABASE=sabbath_school_reviews
+├── frontend/ \# AplicaçãoVue.js (Interface do Usuário) 
 
-    # Chave secreta para assinar os JWTs
-    JWT_SECRET=este_e_um_segredo_muito_longo_e_dificil_de_adivinhar_12345
-    ```
+└── ...
 
-5.  **Inicie o Servidor de Desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-    * O servidor estará rodando em `http://localhost:3000`.
+Para detalhes específicos de cada parte, consulte os arquivos
+`README.md` dentro de cada pasta.
 
-## Endpoints da API
+## 🚀 Guia de Instalação e Execução Local
 
-| Método | Rota                     | Protegida | Descrição                               | Corpo da Requisição (Exemplo)                                    |
-| :----- | :----------------------- | :-------- | :-------------------------------------- | :--------------------------------------------------------------- |
-| `POST` | `/api/usuarios/register` | Não       | Registra um novo usuário.               | `{ "usuario": "...", "senha": "...", "pais": "...", ... }`        |
-| `POST` | `/api/usuarios/login`    | Não       | Autentica um usuário e retorna um token.  | `{ "usuario": "...", "senha": "..." }`                             |
-| `GET`  | `/api/usuarios/ranking`  | Não       | Lista o ranking de usuários (paginado).   | Query Params: `?page=1`                                          |
-| `GET`  | `/api/lessons/today`     | **Sim** | Busca os dados da lição do dia atual.     | N/A                                                              |
-| `POST` | `/api/reviews`           | **Sim** | Submete uma nova review.                | `{ "conteudo": "...", "indiceLicao": "..." }`                   |
-| `GET`  | `/api/reviews`           | Não       | Lista todas as reviews (paginado).      | Query Params: `?page=1`                                          |
+Siga estes passos para ter a aplicação completa rodando na sua máquina.
+
+#### **1. Pré-requisitos**
+
+-   [Node.js](https://nodejs.org/) (versão 20 ou superior)
+-   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+#### **2. Clonar o Repositório**
+
+``` bash
+git clone https://github.com/kleysongomes/projeto-escola-sabatina.git
+cd projeto-escola-sabatina
+```
+
+#### **3. Configuração do Banco de Dados (Docker)**
+
+Na raiz do projeto, crie um arquivo chamado docker-compose.yml e cole o
+seguinte conteúdo:
+
+``` yaml
+# Arquivo: docker-compose.yml (para desenvolvimento local)
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sabbath_school_reviews
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+volumes:
+  postgres_data_dev:
+```
+
+Depois, inicie o container do banco de dados:
+
+``` bash
+docker compose up -d
+```
+
+#### **4. Configurar e Rodar o Backend**
+
+``` bash
+cd backend
+```
+
+Crie um arquivo `.env` na pasta backend com o seguinte conteúdo:
+
+``` ini
+# --- Arquivo: backend/.env ---
+
+# Banco de Dados Local
+DB_USER=admin
+DB_PASSWORD=password
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=sabbath_school_reviews
+
+# Chaves para Tokens (use geradores de senha online para criar as suas)
+ACCESS_TOKEN_SECRET=segredo_para_o_access_token
+REFRESH_TOKEN_SECRET=segredo_diferente_e_mais_longo_para_o_refresh_token
+ACCESS_TOKEN_EXPIRATION="15m"
+REFRESH_TOKEN_EXPIRATION="30d"
+```
+
+Instale as dependências e inicie o servidor do backend:
+
+``` bash
+npm install
+npm run dev
+```
+
+#### **5. Configurar e Rodar o Frontend**
+
+Abra um novo terminal:
+
+``` bash
+cd frontend
+```
+
+Crie um arquivo `.env.local` na pasta frontend com o seguinte conteúdo:
+
+``` ini
+# --- Arquivo: frontend/.env.local ---
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+Instale as dependências e inicie o servidor de desenvolvimento:
+
+``` bash
+npm install
+npm run dev
+```
+
+#### **6. Pronto!**
+
+Sua aplicação agora está totalmente funcional para desenvolvimento
+local.
+
+-   **Frontend** estará acessível em: http://localhost:5173\
+-   **Backend (API)** estará acessível em: http://localhost:3000
+
+------------------------------------------------------------------------
+
+## ☁️ Deploy em Produção
+
+A aplicação é projetada para ser publicada em um Servidor Virtual
+Privado (VPS) usando Docker.\
+O arquivo `docker-compose.prod.yml` orquestra os containers do banco de
+dados, backend, frontend (com Nginx) e um reverse proxy (Caddy) para
+HTTPS automático.
