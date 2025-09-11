@@ -21,8 +21,11 @@ services:
     restart: always
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: production
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ACCESS_TOKEN_EXPIRATION: ${ACCESS_TOKEN_EXPIRATION}
+      REFRESH_TOKEN_EXPIRATION: ${REFRESH_TOKEN_EXPIRATION}
     depends_on:
       db:
         condition: service_healthy
