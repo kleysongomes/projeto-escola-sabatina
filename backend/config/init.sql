@@ -35,18 +35,19 @@ CREATE TABLE IF NOT EXISTS reviews (
     conteudo TEXT NOT NULL,
     quantidade_caracteres INT NOT NULL,
     pontos_ganhos INT NOT NULL,
-    data_criacao TIMESTAMpTZ DEFAULT NOW(),
+    data_criacao TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT fk_usuario
         FOREIGN KEY(id_usuario) 
         REFERENCES usuarios(id)
         ON DELETE CASCADE
 );
 
--- Cria as tabelas de ligação para likes e reports
+-- Cria a tabela de ligação para likes
 CREATE TABLE IF NOT EXISTS review_likes (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   review_id INT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
   CONSTRAINT fk_review FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
   UNIQUE(user_id, review_id)
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS review_reports (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
   review_id INT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
   CONSTRAINT fk_review FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE,
   UNIQUE(user_id, review_id)

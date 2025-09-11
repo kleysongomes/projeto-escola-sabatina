@@ -7,6 +7,7 @@ import AllReviewsView from '../views/AllReviewsView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import AboutView from '../views/AboutView.vue';
 import ReportBugView from '../views/ReportBugView.vue';
+import ProfileView from '../views/ProfileView.vue'; // 1. IMPORTAR A NOVA VIEW
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,9 @@ const router = createRouter({
     },
     {
       path: '/reportar-bug', name: 'report-bug', component: ReportBugView, meta: { requiresAuth: true }
+    },
+    {
+      path: '/perfil', name: 'perfil', component: ProfileView, meta: { requiresAuth: true }
     }
   ]
 });

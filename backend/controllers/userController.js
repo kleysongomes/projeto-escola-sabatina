@@ -179,10 +179,102 @@ const checkUsername = async (req, res) => {
   }
 };
 
+const getUserProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const query = `
+      SELECT u.id, u.usuario, u.pais, u.estado, u.cidade, u.pontos_totais, u.data_criacao, i.nome as igreja_nome
+      FROM usuarios u
+      LEFT JOIN igrejas i ON u.igreja_id = i.id
+      WHERE u.id = $1;
+    `;
+    const result = await db.query(query, [userId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(`Erro ao buscar perfil do usuário ${userId}:`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
+const getUserReviews = async (req, res) => {
+  const userId = req.user.id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const reviewsQuery = `
+      SELECT * FROM reviews 
+      WHERE id_usuario = $1 
+      ORDER BY data_criacao DESC 
+      LIMIT $2 OFFSET $3;
+    `;
+    const countQuery = 'SELECT COUNT(*) FROM reviews WHERE id_usuario = $1;';
+
+    const reviewsResult = await db.query(reviewsQuery, [userId, limit, offset]);
+    const countResult = await db.query(countQuery, [userId]);
+    
+    const totalReviews = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalReviews / limit);
+
+    res.json({
+      reviews: reviewsResult.rows,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    console.error(`Erro ao buscar reviews do usuário ${userId}:`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
+const getUserLikedReviews = async (req, res) => {
+  const userId = req.user.id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const reviewsQuery = `
+      SELECT 
+        r.id, r.conteudo, r.pontos_ganhos, r.data_criacao, u.usuario 
+      FROM reviews r
+      JOIN review_likes l ON r.id = l.review_id
+      JOIN usuarios u ON r.id_usuario = u.id
+      WHERE l.user_id = $1
+      ORDER BY l.created_at DESC
+      LIMIT $2 OFFSET $3;
+    `;
+    const countQuery = 'SELECT COUNT(*) FROM review_likes WHERE user_id = $1;';
+
+    const reviewsResult = await db.query(reviewsQuery, [userId, limit, offset]);
+    const countResult = await db.query(countQuery, [userId]);
+
+    const totalReviews = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalReviews / limit);
+
+    res.json({
+      reviews: reviewsResult.rows,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    console.error(`Erro ao buscar reviews curtidas pelo usuário ${userId}:`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getUserRanking,
   checkUsername,
+  getUserProfile,
+  getUserReviews,
+  getUserLikedReviews,
 };
