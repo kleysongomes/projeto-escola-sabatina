@@ -1,0 +1,12 @@
+# Ignorar dependências e logs a nível de raiz
+
+/node_modules
+/npm-debug.log*
+
+# Ignorar arquivos de ambiente que podem ser criados na raiz
+.env
+.env.local
+
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
