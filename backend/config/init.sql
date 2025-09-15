@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     is_admin BOOLEAN NOT NULL DEFAULT false,
     igreja_id INT,
     refresh_token TEXT,
+    politica_privacidade_aceita_em TIMESTAMPTZ,
+    tema VARCHAR(20) NOT NULL DEFAULT 'light',
     CONSTRAINT fk_igreja
       FOREIGN KEY(igreja_id) 
       REFERENCES igrejas(id)

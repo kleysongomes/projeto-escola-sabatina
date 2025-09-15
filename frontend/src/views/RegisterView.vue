@@ -50,6 +50,16 @@
           <label for="nova-igreja">Nome da Nova Igreja</label>
           <input id="nova-igreja" type="text" v-model.trim="novaIgrejaNome" class="input-field" placeholder="Ex: IASD Central"/>
         </div>
+        
+        <div class="form-group-checkbox">
+          <input type="checkbox" id="privacy-policy" v-model="acceptedPolicy" required />
+          <label for="privacy-policy">
+            Eu li e aceito a 
+            <button type="button" @click="isPolicyModalOpen = true" class="privacy-link-button">
+              Política de Privacidade
+            </button>.
+          </label>
+        </div>
       
         <button type="submit" class="btn-primary" :disabled="isLoading || !!usernameError">
           {{ isLoading ? 'Cadastrando...' : 'Criar conta' }}
@@ -61,6 +71,23 @@
       Já tem uma conta? <RouterLink :to="{ name: 'login' }">Entrar</RouterLink>
     </p>
   </div>
+
+  <BaseModal :show="isPolicyModalOpen" @close="isPolicyModalOpen = false">
+    <template #header>
+      <ShieldCheck :size="24" />
+      Política de Privacidade
+    </template>
+    <template #body>
+      <div class="policy-text">
+        <h2>1. Coleta de Dados</h2>
+        <p>Coletamos as informações que você nos fornece diretamente no momento do cadastro, como nome de usuário, senha (armazenada de forma segura com hash), país, estado, cidade e igreja. Também coletamos as reviews que você escreve e suas interações (curtidas, reports).</p>
+        <h2>2. Uso das Informações</h2>
+        <p>As informações coletadas são usadas para o funcionamento da plataforma, incluindo o sistema de gamificação (pontos e ranking), exibição das reviews para a comunidade e moderação de conteúdo. Seu nome de usuário, cidade, país e igreja são visíveis publicamente no ranking.</p>
+        <h2>3. Segurança dos Dados</h2>
+        <p>Nos comprometemos a proteger seus dados. Senhas são criptografadas com `bcrypt` e nunca armazenadas em texto puro. A comunicação entre o aplicativo e o servidor é protegida com HTTPS/SSL.</p>
+      </div>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup>
@@ -69,6 +96,8 @@ import { useRouter, RouterLink } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 import logoUrl from '@/assets/stud_blue.png';
+import BaseModal from '@/components/BaseModal.vue';
+import { ShieldCheck } from 'lucide-vue-next';
 
 const formData = ref({
   usuario: '',
@@ -84,6 +113,8 @@ const toast = useToast();
 const igrejas = ref([]);
 const novaIgrejaNome = ref('');
 const usernameError = ref('');
+const acceptedPolicy = ref(false);
+const isPolicyModalOpen = ref(false);
 
 onMounted(async () => {
   try {
@@ -114,14 +145,19 @@ const validateUsername = async () => {
 };
 
 const handleRegister = async () => {
-  await validateUsername(); // Garante que a validação foi feita uma última vez
+  await validateUsername();
   if (usernameError.value) {
     toast.error('Por favor, corrija os erros no formulário.');
     return;
   }
+  
+  if (!acceptedPolicy.value) {
+    toast.error('Você precisa aceitar a Política de Privacidade para continuar.');
+    return;
+  }
 
   isLoading.value = true;
-  const registrationPayload = { ...formData.value };
+  const registrationPayload = { ...formData.value, aceitouPolitica: acceptedPolicy.value };
 
   try {
     if (registrationPayload.igreja_id === 'new') {
@@ -178,5 +214,45 @@ label { font-weight: 700; margin-bottom: 0.5rem; display: block; }
   color: var(--cor-erro);
   font-size: 0.8rem;
   margin-top: 0.25rem;
+}
+.form-group-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+.form-group-checkbox label {
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+.form-group-checkbox input[type="checkbox"] {
+  width: 1.2em;
+  height: 1.2em;
+}
+.privacy-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline;
+  text-decoration: underline;
+  color: var(--cor-secundaria);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+.policy-text h2 {
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--cor-texto);
+}
+.policy-text p {
+  line-height: 1.7;
+}
+:deep(.modal-header) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 </style>

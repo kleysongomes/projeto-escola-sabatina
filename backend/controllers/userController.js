@@ -13,7 +13,7 @@ const toTitleCase = (str) => {
 };
 
 const registerUser = async (req, res) => {
-  const { usuario, senha, pais, estado, cidade, igreja_id } = req.body;
+  const { usuario, senha, pais, estado, cidade, igreja_id, aceitouPolitica } = req.body;
   try {
     const salt = await bcrypt.genSalt(10);
     const senha_hash = await bcrypt.hash(senha, salt);
@@ -23,11 +23,19 @@ const registerUser = async (req, res) => {
     const cidadePadronizada = toTitleCase(cidade);
 
     const insertQuery = `
-      INSERT INTO usuarios (usuario, senha_hash, pais, estado, cidade, igreja_id)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO usuarios (usuario, senha_hash, pais, estado, cidade, igreja_id, politica_privacidade_aceita_em)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id, usuario, data_criacao;
     `;
-    const values = [usuario, senha_hash, paisPadronizado, estadoPadronizado, cidadePadronizada, igreja_id];
+    const values = [
+      usuario,
+      senha_hash,
+      paisPadronizado,
+      estadoPadronizado,
+      cidadePadronizada,
+      igreja_id,
+      aceitouPolitica ? new Date() : null
+    ];
     
     const result = await db.query(insertQuery, values);
     const newUser = result.rows[0];
@@ -65,7 +73,9 @@ const loginUser = async (req, res) => {
     const accessTokenPayload = { 
       id: user.id, 
       usuario: user.usuario,
-      isAdmin: user.is_admin
+      isAdmin: user.is_admin,
+      tema: user.tema,
+      politicaAceita: !!user.politica_privacidade_aceita_em
     };
     const accessToken = jwt.sign(accessTokenPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION });
 
@@ -183,7 +193,7 @@ const getUserProfile = async (req, res) => {
   const userId = req.user.id;
   try {
     const query = `
-      SELECT u.id, u.usuario, u.pais, u.estado, u.cidade, u.pontos_totais, u.data_criacao, i.nome as igreja_nome
+      SELECT u.id, u.usuario, u.pais, u.estado, u.cidade, u.pontos_totais, u.data_criacao, u.tema, u.politica_privacidade_aceita_em, i.nome as igreja_nome
       FROM usuarios u
       LEFT JOIN igrejas i ON u.igreja_id = i.id
       WHERE u.id = $1;
@@ -267,6 +277,37 @@ const getUserLikedReviews = async (req, res) => {
   }
 };
 
+const updateUserTheme = async (req, res) => {
+    const userId = req.user.id;
+    const { tema } = req.body;
+
+    if (tema !== 'light' && tema !== 'dark') {
+        return res.status(400).json({ error: "Tema inválido. Apenas 'light' ou 'dark' são permitidos." });
+    }
+
+    try {
+        await db.query('UPDATE usuarios SET tema = $1 WHERE id = $2', [tema, userId]);
+        console.info(`INFO: Usuário ${userId} atualizou o tema para "${tema}".`);
+        res.status(200).json({ message: 'Tema atualizado com sucesso.' });
+    } catch (error) {
+        console.error(`Erro ao atualizar tema para o usuário ${userId}:`, error);
+        res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+    }
+};
+
+const acceptPrivacyPolicy = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const query = "UPDATE usuarios SET politica_privacidade_aceita_em = NOW() WHERE id = $1 AND politica_privacidade_aceita_em IS NULL";
+        await db.query(query, [userId]);
+        console.info(`INFO: Usuário ${userId} aceitou a política de privacidade.`);
+        res.status(200).json({ message: 'Política de privacidade aceita.' });
+    } catch (error) {
+        console.error(`Erro ao salvar aceite da política para o usuário ${userId}:`, error);
+        res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+    }
+};
+
 
 module.exports = {
   registerUser,
@@ -277,4 +318,6 @@ module.exports = {
   getUserProfile,
   getUserReviews,
   getUserLikedReviews,
+  updateUserTheme,
+  acceptPrivacyPolicy,
 };
