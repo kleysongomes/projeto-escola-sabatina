@@ -8,7 +8,6 @@ import RegisterView from '../views/RegisterView.vue';
 import AboutView from '../views/AboutView.vue';
 import ReportBugView from '../views/ReportBugView.vue';
 import ProfileView from '../views/ProfileView.vue';
-// 1. A IMPORTAÇÃO DE 'PrivacyPolicyView' FOI REMOVIDA DAQUI
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

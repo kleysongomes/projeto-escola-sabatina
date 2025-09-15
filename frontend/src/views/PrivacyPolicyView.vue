@@ -104,9 +104,9 @@ const handleDecline = () => {
 }
 
 .policy-content {
-  max-height: 50vh; /* Altura máxima para o texto */
-  overflow-y: auto; /* Adiciona scroll se o texto for muito grande */
-  padding-right: 1rem; /* Espaço para a barra de scroll */
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 1rem;
 }
 .policy-content h2 {
   font-weight: 700;
