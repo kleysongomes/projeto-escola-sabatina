@@ -12,7 +12,8 @@ const corsOptions = {
     'https://studup.app',
     'https://www.studup.app'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  // Garante que todos os métodos que usamos e usaremos sejam permitidos
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));

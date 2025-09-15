@@ -78,14 +78,7 @@
       Política de Privacidade
     </template>
     <template #body>
-      <div class="policy-text">
-        <h2>1. Coleta de Dados</h2>
-        <p>Coletamos as informações que você nos fornece diretamente no momento do cadastro, como nome de usuário, senha (armazenada de forma segura com hash), país, estado, cidade e igreja. Também coletamos as reviews que você escreve e suas interações (curtidas, reports).</p>
-        <h2>2. Uso das Informações</h2>
-        <p>As informações coletadas são usadas para o funcionamento da plataforma, incluindo o sistema de gamificação (pontos e ranking), exibição das reviews para a comunidade e moderação de conteúdo. Seu nome de usuário, cidade, país e igreja são visíveis publicamente no ranking.</p>
-        <h2>3. Segurança dos Dados</h2>
-        <p>Nos comprometemos a proteger seus dados. Senhas são criptografadas com `bcrypt` e nunca armazenadas em texto puro. A comunicação entre o aplicativo e o servidor é protegida com HTTPS/SSL.</p>
-      </div>
+      <PrivacyPolicyContent />
     </template>
   </BaseModal>
 </template>
@@ -98,6 +91,8 @@ import { useToast } from 'vue-toastification';
 import logoUrl from '@/assets/stud_blue.png';
 import BaseModal from '@/components/BaseModal.vue';
 import { ShieldCheck } from 'lucide-vue-next';
+// Importamos o novo componente de conteúdo
+import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 
 const formData = ref({
   usuario: '',
@@ -194,6 +189,7 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
+/* O :deep foi removido, pois o estilo do texto da política está agora no seu próprio componente */
 .auth-container { text-align: center; padding-top: 1rem; }
 .logo { height: 120px; margin-bottom: -25px; position: relative; z-index: 1; }
 .title { font-size: 1.8rem; font-weight: 900; margin-top: 0; margin-bottom: 1.5rem; }
@@ -240,15 +236,6 @@ label { font-weight: 700; margin-bottom: 0.5rem; display: block; }
   font-size: inherit;
   font-family: inherit;
   cursor: pointer;
-}
-.policy-text h2 {
-  font-weight: 700;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--cor-texto);
-}
-.policy-text p {
-  line-height: 1.7;
 }
 :deep(.modal-header) {
   display: flex;

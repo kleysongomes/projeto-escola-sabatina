@@ -8,6 +8,7 @@ import RegisterView from '../views/RegisterView.vue';
 import AboutView from '../views/AboutView.vue';
 import ReportBugView from '../views/ReportBugView.vue';
 import ProfileView from '../views/ProfileView.vue';
+import SettingsView from '../views/SettingsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,9 @@ const router = createRouter({
     {
       path: '/perfil', name: 'perfil', component: ProfileView, meta: { requiresAuth: true }
     },
+    {
+      path: '/configuracoes', name: 'configuracoes', component: SettingsView, meta: { requiresAuth: true }
+    }
   ]
 });
 

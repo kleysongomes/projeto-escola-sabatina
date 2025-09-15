@@ -5,6 +5,10 @@
     
     <div v-else-if="profileData" class="profile-content">
       <div class="profile-header card">
+        <RouterLink to="/configuracoes" class="settings-btn" aria-label="Configurações">
+          <Settings :size="22" />
+        </RouterLink>
+
         <UserCircle2 :size="60" class="profile-icon" />
         <h1 class="username">{{ profileData.usuario }}</h1>
         <p class="member-since">Membro desde: {{ formatDate(profileData.data_criacao, true) }}</p>
@@ -64,11 +68,12 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { RouterLink } from 'vue-router';
 import api from '@/services/api';
-import { UserCircle2 } from 'lucide-vue-next';
+import { UserCircle2, Settings } from 'lucide-vue-next';
 import { useToast } from 'vue-toastification';
 
-const activeTab = ref('details'); // Começa na aba 'Meus Dados'
+const activeTab = ref('details');
 const profileData = ref(null);
 const myReviews = ref(null);
 const likedReviews = ref(null);
@@ -128,7 +133,6 @@ onMounted(() => {
   fetchProfileData();
 });
 
-// Observa a mudança de aba para carregar os dados sob demanda
 watch(activeTab, (newTab) => {
   if (newTab === 'myReviews' && !myReviews.value) {
     fetchMyReviews();
@@ -142,7 +146,11 @@ watch(activeTab, (newTab) => {
 .profile-container { display: flex; flex-direction: column; gap: 1.5rem; }
 .loading, .error-message, .no-data { text-align: center; margin-top: 2rem; }
 .no-data { color: var(--cor-texto-suave); }
-.profile-header { text-align: center; padding: 2rem 1rem; }
+.profile-header { 
+  text-align: center; 
+  padding: 2rem 1rem; 
+  position: relative;
+}
 .profile-icon { color: var(--cor-secundaria); margin-bottom: 0.5rem; }
 .username { font-size: 1.8rem; font-weight: 900; }
 .member-since { font-size: 0.9rem; color: var(--cor-texto-suave); margin-bottom: 1.5rem; }
@@ -150,7 +158,6 @@ watch(activeTab, (newTab) => {
 .stat-item { display: flex; flex-direction: column; }
 .stat-item strong { font-size: 1.5rem; font-weight: 900; }
 .stat-item span { font-size: 0.8rem; color: var(--cor-texto-suave); }
-
 .tabs {
   display: flex;
   justify-content: space-around;
@@ -172,14 +179,31 @@ watch(activeTab, (newTab) => {
   color: var(--cor-secundaria);
   border-bottom-color: var(--cor-secundaria);
 }
-
 .tab-content { margin-top: 1.5rem; }
 .details-section ul { list-style: none; padding: 0; }
 .details-section li { padding: 0.5rem 0; color: var(--cor-texto-suave); }
 .details-section strong { color: var(--cor-texto); font-weight: 700; }
-
 .reviews-list { display: flex; flex-direction: column; gap: 1rem; }
 .review-item { padding: 1rem; }
 .review-item p { font-style: italic; margin-bottom: 0.5rem; }
 .review-item small { color: var(--cor-texto-suave); font-size: 0.8rem; }
+.settings-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--cor-texto-suave);
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.settings-btn:hover {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+}
 </style>
