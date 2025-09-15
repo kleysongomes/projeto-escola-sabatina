@@ -12,16 +12,15 @@ router.post('/logout', authMiddleware, userController.logoutUser);
 // Rota Pública
 router.get('/ranking', userController.getUserRanking);
 
-// Rotas de Perfil do Usuário Logado ('/me')
+// Rotas para buscar dados ('GET')
 router.get('/me', authMiddleware, userController.getUserProfile);
 router.get('/me/reviews', authMiddleware, userController.getUserReviews);
 router.get('/me/likes', authMiddleware, userController.getUserLikedReviews);
 
-// Rota para o usuário atualizar sua preferência de tema
+// Rotas para modificar dados ('POST' ou 'PATCH')
 router.patch('/me/theme', authMiddleware, userController.updateUserTheme);
-
-// Rota para o usuário aceitar a política de privacidade
 router.post('/me/accept-policy', authMiddleware, userController.acceptPrivacyPolicy);
+router.patch('/me', authMiddleware, userController.updateUserProfile);
 
 
 module.exports = router;

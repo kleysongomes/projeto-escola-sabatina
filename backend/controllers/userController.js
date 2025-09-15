@@ -111,7 +111,7 @@ const logoutUser = async (req, res) => {
 const getUserRanking = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
-  const { pais, estado, cidade, igreja_id } = req.query;
+  const { pais, estado, cidade, igreja_id } = req.body;
   
   let paramIndex = 1;
   const whereClauses = [];
@@ -308,6 +308,68 @@ const acceptPrivacyPolicy = async (req, res) => {
     }
 };
 
+const updateUserProfile = async (req, res) => {
+    const userId = req.user.id;
+    const { usuario, pais, estado, cidade, igreja_id } = req.body;
+
+    try {
+        if (usuario) {
+            const existingUser = await db.query(
+                'SELECT id FROM usuarios WHERE usuario = $1 AND id != $2',
+                [usuario, userId]
+            );
+            if (existingUser.rows.length > 0) {
+                return res.status(409).json({ error: 'Este nome de usuário já está em uso.' });
+            }
+        }
+
+        const fields = [];
+        const values = [];
+        let paramIndex = 1;
+
+        if (usuario) {
+            fields.push(`usuario = $${paramIndex++}`);
+            values.push(usuario);
+        }
+        if (pais) {
+            fields.push(`pais = $${paramIndex++}`);
+            values.push(toTitleCase(pais));
+        }
+        if (estado) {
+            fields.push(`estado = $${paramIndex++}`);
+            values.push(toTitleCase(estado));
+        }
+        if (cidade) {
+            fields.push(`cidade = $${paramIndex++}`);
+            values.push(toTitleCase(cidade));
+        }
+        if (igreja_id) {
+            fields.push(`igreja_id = $${paramIndex++}`);
+            values.push(igreja_id);
+        }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ error: 'Nenhum dado fornecido para atualização.' });
+        }
+
+        values.push(userId);
+        const updateQuery = `
+            UPDATE usuarios 
+            SET ${fields.join(', ')} 
+            WHERE id = $${paramIndex} 
+            RETURNING id, usuario, pais, estado, cidade, igreja_id, tema, is_admin, politica_privacidade_aceita_em;
+        `;
+
+        const result = await db.query(updateQuery, values);
+        
+        console.info(`INFO: Usuário ${userId} atualizou seus dados cadastrais.`);
+        res.status(200).json(result.rows[0]);
+
+    } catch (error) {
+        console.error(`Erro ao atualizar perfil do usuário ${userId}:`, error);
+        res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+    }
+};
 
 module.exports = {
   registerUser,
@@ -320,4 +382,5 @@ module.exports = {
   getUserLikedReviews,
   updateUserTheme,
   acceptPrivacyPolicy,
+  updateUserProfile,
 };
