@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
 import api from '@/services/api';
+import { useToast } from 'vue-toastification';
 
 export const useAuthStore = defineStore('auth', {
-
   state: () => ({
     accessToken: localStorage.getItem('accessToken') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
@@ -13,7 +13,6 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.accessToken,
   },
   actions: {
-
     async login(usuario, senha) {
       try {
         const response = await api.post('/usuarios/login', { usuario, senha });
@@ -72,8 +71,33 @@ export const useAuthStore = defineStore('auth', {
         return accessToken;
       } catch (error) {
         console.error("Não foi possível renovar o token:", error);
-        // Se o refresh falhar, o interceptor irá deslogar o usuário.
         throw error;
+      }
+    },
+
+    async updateTheme(newTheme) {
+      if (!this.user) return;
+      const toast = useToast();
+      const oldTheme = this.user.tema;
+
+      this.user.tema = newTheme;
+      localStorage.setItem('user', JSON.stringify(this.user));
+
+      try {
+        await api.patch('/usuarios/me/theme', { tema: newTheme });
+      } catch (error) {
+        this.user.tema = oldTheme;
+        localStorage.setItem('user', JSON.stringify(this.user));
+        toast.error('Não foi possível salvar sua preferência de tema.');
+        console.error("Erro ao atualizar tema:", error);
+      }
+    },
+
+    // Ação para marcar que o usuário aceitou a política de privacidade
+    setPolicyAccepted() {
+      if (this.user) {
+        this.user.politicaAceita = true;
+        localStorage.setItem('user', JSON.stringify(this.user));
       }
     },
   },

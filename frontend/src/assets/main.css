@@ -1,26 +1,44 @@
-/* Nova paleta de cores com tons de azul */
+/* Paleta de cores para o tema padrão (Claro) */
 :root {
-  --cor-fundo: #F7F7F7;            /* Branco suave */
-  --cor-container: #FFFFFF;         /* Branco puro para os cards */
-  --cor-borda: #E5E5E5;            /* Cinza claro para bordas e divisões */
-  --cor-texto: #4B4B4B;             /* Cinza escuro para texto, mais suave que preto */
-  --cor-texto-suave: #777777;      /* Cinza mais claro para subtextos */
+  --cor-fundo: #F7F7F7;
+  --cor-container: #FFFFFF;
+  --cor-borda: #E5E5E5;
+  --cor-texto: #4B4B4B;
+  --cor-texto-suave: #777777;
   
-  /* --- CORES ALTERADAS --- */
-  --cor-primaria: #3B82F6;         /* Azul vibrante para ações principais */
-  --cor-primaria-hover: #2563EB;     /* Azul mais escuro para hover */
-  --cor-secundaria: #1CB0F6;       /* Violeta para informações e links */
-  --cor-sucesso: #1CB0F6;           /* Verde/turquesa para sucesso */
-  --cor-erro: #F38BA8;              /* Rosa/vermelho para erros */
+  --cor-primaria: #3B82F6;
+  --cor-primaria-hover: #2563EB;
+  --cor-secundaria: #1CB0F6;
+  --cor-sucesso: #1CB0F6;
+  --cor-erro: #F38BA8;
 
-  /* Customização do Vue Toastification (agora no mesmo bloco) */
+  /* Variáveis do Toast */
   --toast-background-color: var(--cor-container);
   --toast-color: var(--cor-texto);
-  --toast-icon-color-success: var(--cor-primaria); /* Usa o novo azul primário */
+  --toast-icon-color-success: var(--cor-primaria);
   --toast-icon-color-error: var(--cor-erro);
   --toast-icon-color-warning: #f59e0b;
-  --toast-progress-bar-color: var(--cor-primaria); /* Usa o novo azul primário */
+  --toast-progress-bar-color: var(--cor-primaria);
 }
+
+[data-theme="dark"] {
+  --cor-fundo: #111118;            /* Preto suave */
+  --cor-container: #1e1e2e;         /* Azul bem escuro */
+  --cor-borda: #313244;            /* Cinza azulado */
+  --cor-texto: #cdd6f4;             /* Lavanda claro */
+  --cor-texto-suave: #777777;      /* Lavanda mais suave */
+
+  /* Cores vibrantes se destacam mais no escuro, podemos mantê-las */
+  --cor-primaria: #3B82F6;         /* Azul mais claro e vibrante */
+  --cor-primaria-hover: #2563EB;
+  --cor-secundaria: #1CB0F6;       /* Roxo mais claro */
+  --cor-sucesso: #a6e3a1;           /* Verde pastel */
+  --cor-erro: #F38BA8;              /* Rosa pastel */
+
+  /* O fundo do toast no tema escuro precisa ser escuro */
+  --toast-background-color: #313244;
+}
+
 
 /* Reset básico e configurações globais */
 *,
@@ -42,6 +60,8 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Adicionamos uma transição suave para a troca de tema */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #app {
@@ -54,7 +74,7 @@ body {
 .btn-primary {
   padding: 1rem;
   background-color: var(--cor-primaria);
-  color: white;
+  color: #FFFFFF; /* Forçado para branco para melhor contraste */
   border: none;
   border-bottom: 4px solid var(--cor-primaria-hover);
   border-radius: 12px;
@@ -81,6 +101,7 @@ body {
   font-size: 1rem;
   font-family: 'Nunito', sans-serif;
   width: 100%;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 .input-field:focus {
   outline: none;
@@ -93,6 +114,7 @@ body {
   border: 1px solid var(--cor-borda);
   padding: 1.5rem;
   width: 100%;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .Vue-Toastification__toast {
