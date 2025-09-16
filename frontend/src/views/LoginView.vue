@@ -22,6 +22,11 @@
     <p class="switch-link">
       Não tem uma conta? <RouterLink :to="{ name: 'register' }">Crie uma</RouterLink>
     </p>
+
+    <p class="support-text">
+      Não consegue resolver pelo app? Nos mande um e-mail: 
+      <a href="mailto:suportedesbravalink@gmail.com">suportedesbravalink@gmail.com</a>
+    </p>
   </div>
 </template>
 
@@ -54,23 +59,18 @@ const handleLogin = async () => {
   text-align: center;
   padding-top: 2rem;
 }
-
-
 .logo {
   height: 120px;
   margin-bottom: -25px; 
   position: relative; 
   z-index: 1;
 }
-
 .title {
   font-size: 1.8rem;
   font-weight: 900;
   margin-top: 0; 
   margin-bottom: 1.5rem;
 }
-
-
 .card {
   margin-bottom: 1.5rem;
 }
@@ -94,5 +94,17 @@ label {
 .switch-link a {
   color: var(--cor-primaria);
   font-weight: 700;
+}
+.support-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  margin-top: 2.5rem;
+  padding: 0 1rem;
+}
+.support-text a {
+  color: var(--cor-secundaria);
+  text-decoration: underline;
+  font-weight: 600;
 }
 </style>

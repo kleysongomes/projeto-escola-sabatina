@@ -2,6 +2,7 @@
   <div class="settings-container">
     <div class="header-nav">
       <h1 class="page-title">
+        <Settings :size="28" />
         Configurações
       </h1>
     </div>
@@ -12,7 +13,7 @@
           <Palette :size="24" />
         </div>
         <div class="item-content">
-          <span class="item-title">Tema da Aplicação</span>
+          <span class="item-title">Tema do App</span>
           <span class="item-description">
             Atualmente: <strong>{{ authStore.user?.tema === 'dark' ? 'Escuro' : 'Claro' }}</strong>
           </span>
@@ -58,6 +59,11 @@
         <ChevronRight :size="24" class="item-chevron" />
       </button>
     </div>
+
+    <p class="support-text">
+      Não consegue resolver pelo app? Nos mande um e-mail: 
+      <a href="mailto:suportedesbravalink@gmail.com">suportedesbravalink@gmail.com</a>
+    </p>
   </div>
 
   <BaseModal :show="isPolicyModalOpen" @close="isPolicyModalOpen = false">
@@ -74,7 +80,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
-import { Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
+import { Settings, ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
 import BaseModal from '@/components/BaseModal.vue';
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -225,5 +231,16 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+.support-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  margin-top: 1rem;
+}
+.support-text a {
+  color: var(--cor-secundaria);
+  text-decoration: underline;
+  font-weight: 600;
 }
 </style>

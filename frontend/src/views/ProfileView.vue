@@ -21,8 +21,8 @@
       </div>
 
       <nav class="tabs">
-        <button @click="activeTab = 'details'" :class="{ active: activeTab === 'details' }">Meus Dados</button>
-        <button @click="activeTab = 'myReviews'" :class="{ active: activeTab === 'myReviews' }">Minhas Reviews</button>
+        <button @click="activeTab = 'details'" :class="{ active: activeTab === 'details' }">Dados</button>
+        <button @click="activeTab = 'myReviews'" :class="{ active: activeTab === 'myReviews' }">Reviews</button>
         <button @click="activeTab = 'likedReviews'" :class="{ active: activeTab === 'likedReviews' }">Curtidas</button>
       </nav>
 
