@@ -3,7 +3,7 @@
     <div class="header-nav">
       <h1 class="page-title">Sobre o App</h1>
     </div>
-
+    
     <RouterLink to="/reportar-bug" class="banner-report-bug">
       <div class="banner-content">
         <Bug :size="20" />
@@ -45,20 +45,14 @@
       <h2 class="section-title"><PartyPopper  :size="20" /> O que há de novo </h2>
       <ul>
         <li><strong>NOVO</strong>: Perfil de usuário</li>
+        <li><strong>NOVO</strong>: Configurações de usuário</li>
+        <li><strong>NOVO</strong>: Tema noturno</li>
         <li><strong>NOVO</strong>: Login único(a cada 30 dias)</li>
         <li><strong>NOVO</strong>: Serviço publicado</li>
         <li><strong>NOVO</strong>: Servidor dedicado 24/7</li>
         <li><strong>NOVO</strong>: Melhoria de Layout</li>
+        <li><strong>NOVO</strong>: Política de Privacidade</li>
       </ul>
-      
-      <a 
-        href="https://github.com/kleysongomes/projeto-escola-sabatina/issues?q=is%3Aissue+state%3Aclosed" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        class="documentation-link"
-      >
-        Ver documentação de entregas
-      </a>
     </div>
 
     <div class="card info-card">
@@ -120,8 +114,6 @@ const copyPixKey = async () => {
 </script>
 
 <style scoped>
-/* Nenhum estilo novo precisou ser adicionado, pois reutilizamos os existentes! */
-/* Os estilos abaixo são os que você já tinha no arquivo. */
 .about-container {
   display: flex;
   flex-direction: column;
