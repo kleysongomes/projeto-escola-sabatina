@@ -1,11 +1,7 @@
 <template>
   <div class="settings-container">
     <div class="header-nav">
-      <button @click="router.back()" class="back-btn" aria-label="Voltar">
-        <ArrowLeft :size="24" />
-      </button>
       <h1 class="page-title">
-        <Settings :size="28" />
         Configurações
       </h1>
     </div>
@@ -78,7 +74,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
-import { Settings, ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
+import { Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
 import BaseModal from '@/components/BaseModal.vue';
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 import { useAuthStore } from '@/stores/auth';
