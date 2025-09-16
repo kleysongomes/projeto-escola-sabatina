@@ -1,7 +1,11 @@
 <template>
   <div class="settings-container">
     <div class="header-nav">
+      <button @click="router.back()" class="back-btn" aria-label="Voltar">
+        <ArrowLeft :size="24" />
+      </button>
       <h1 class="page-title">
+        <Settings :size="28" />
         Configurações
       </h1>
     </div>
@@ -12,7 +16,7 @@
           <Palette :size="24" />
         </div>
         <div class="item-content">
-          <span class="item-title">Tema do App</span>
+          <span class="item-title">Tema da Aplicação</span>
           <span class="item-description">
             Atualmente: <strong>{{ authStore.user?.tema === 'dark' ? 'Escuro' : 'Claro' }}</strong>
           </span>
@@ -36,16 +40,16 @@
         <ChevronRight :size="24" class="item-chevron" />
       </RouterLink>
 
-      <div class="card setting-item disabled">
+      <RouterLink to="/configuracoes/senha" class="card setting-item">
         <div class="item-icon-wrapper">
           <Lock :size="24" />
         </div>
         <div class="item-content">
           <span class="item-title">Alterar Senha</span>
-          <span class="item-description">Mantenha sua conta segura (em breve).</span>
+          <span class="item-description">Mantenha sua conta segura.</span>
         </div>
         <ChevronRight :size="24" class="item-chevron" />
-      </div>
+      </RouterLink>
 
       <button @click="isPolicyModalOpen = true" class="card setting-item">
         <div class="item-icon-wrapper">
@@ -73,8 +77,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter, RouterLink } from 'vue-router'; // RouterLink importado
-import { Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
+import { useRouter, RouterLink } from 'vue-router';
+import { Settings, ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
 import BaseModal from '@/components/BaseModal.vue';
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -90,7 +94,6 @@ const toggleTheme = () => {
 </script>
 
 <style scoped>
-/* Nenhum estilo precisou ser alterado, apenas a tag no template */
 .settings-container {
   display: flex;
   flex-direction: column;
@@ -136,7 +139,6 @@ const toggleTheme = () => {
   font-family: 'Nunito', sans-serif;
   cursor: pointer;
   transition: background-color 0.2s;
-  /* Adicionado para que o RouterLink se pareça com os outros itens */
   text-decoration: none;
 }
 .setting-item:hover {

@@ -9,7 +9,9 @@ import AboutView from '../views/AboutView.vue';
 import ReportBugView from '../views/ReportBugView.vue';
 import ProfileView from '../views/ProfileView.vue';
 import SettingsView from '../views/SettingsView.vue';
-import UpdateProfileView from '../views/UpdateProfileView.vue'; // 1. IMPORTAR A NOVA VIEW
+import UpdateProfileView from '../views/UpdateProfileView.vue';
+import ChangePasswordView from '../views/ChangePasswordView.vue';
+import AcceptPolicyView from '../views/AcceptPolicyView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,17 +45,29 @@ const router = createRouter({
     },
     {
       path: '/configuracoes/dados', name: 'update-profile', component: UpdateProfileView, meta: { requiresAuth: true }
+    },
+    {
+      path: '/configuracoes/senha', name: 'change-password', component: ChangePasswordView, meta: { requiresAuth: true }
+    },
+    {
+      path: '/aceitar-politica', name: 'accept-policy', component: AcceptPolicyView, meta: { requiresAuth: true }
     }
   ]
 });
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'login' });
-  } else {
-    next();
+  const safeRoutes = ['login', 'register', 'accept-policy'];
+
+  if (authStore.isAuthenticated && authStore.user && !authStore.user.politicaAceita && !safeRoutes.includes(to.name)) {
+    return next({ name: 'accept-policy', query: { force: 'true' } });
   }
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return next({ name: 'login' });
+  }
+  
+  next();
 });
 
 export default router;
