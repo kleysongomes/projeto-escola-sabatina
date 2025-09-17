@@ -4,11 +4,11 @@
       <RouterLink to="/" class="nav-link" title="Home">
         <SquarePen :size="28" />
       </RouterLink>
-      <RouterLink to="/ranking" class="nav-link" title="Ranking">
-        <Trophy :size="28" />
-      </RouterLink>
       <RouterLink to="/reviews" class="nav-link" title="Mural de Reviews">
         <ClipboardList :size="28" />
+      </RouterLink>
+      <RouterLink to="/ranking" class="nav-link" title="Ranking">
+        <Trophy :size="28" />
       </RouterLink>
       <RouterLink to="/perfil" class="nav-link" title="Meu Perfil">
         <UserCircle2 :size="28" />

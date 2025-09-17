@@ -346,6 +346,31 @@ const changePassword = async (req, res) => {
     }
 };
 
+const getUserPointsHistory = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const query = `
+      SELECT
+        to_char(day_series.day, 'YYYY-MM-DD') AS date,
+        COALESCE(SUM(r.pontos_ganhos), 0)::int AS points
+      FROM 
+        generate_series(
+          (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - 6, 
+          (NOW() AT TIME ZONE 'America/Sao_Paulo')::date, 
+          '1 day'::interval
+        ) AS day_series(day)
+      LEFT JOIN reviews r ON (r.data_criacao AT TIME ZONE 'America/Sao_Paulo')::date = day_series.day AND r.id_usuario = $1
+      GROUP BY day_series.day
+      ORDER BY day_series.day ASC;
+    `;
+    const result = await db.query(query, [userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(`Erro ao buscar histórico de pontos do usuário ${userId}:`, error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -359,4 +384,5 @@ module.exports = {
   acceptPrivacyPolicy,
   updateUserProfile,
   changePassword,
+  getUserPointsHistory,
 };

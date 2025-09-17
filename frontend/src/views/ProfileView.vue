@@ -28,12 +28,34 @@
 
       <div class="tab-content">
         <div v-if="activeTab === 'details'" class="details-section card">
-          <ul>
-            <li><strong>País:</strong> {{ profileData.pais }}</li>
-            <li><strong>Estado:</strong> {{ profileData.estado }}</li>
-            <li><strong>Cidade:</strong> {{ profileData.cidade }}</li>
-            <li><strong>Igreja:</strong> {{ profileData.igreja_nome || 'Não informada' }}</li>
-          </ul>
+          <div class="profile-details-list">
+            <div class="detail-item">
+              <span class="detail-label">País</span>
+              <span class="detail-value">{{ profileData.pais }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Estado</span>
+              <span class="detail-value">{{ profileData.estado }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Cidade</span>
+              <span class="detail-value">{{ profileData.cidade }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Igreja</span>
+              <span class="detail-value">{{ profileData.igreja_nome || 'Não informada' }}</span>
+            </div>
+          </div>
+
+          <hr class="divider" />
+          
+          <h3 class="chart-title">Pontos nos Últimos 7 Dias</h3>
+          
+          <div v-if="isLoadingChart" class="loading-chart">Carregando gráfico...</div>
+          <div v-else-if="!pointsHistory || pointsHistory.length === 0" class="no-data">Não há dados de pontos para exibir.</div>
+          <div v-else>
+            <PointsChart :historyData="pointsHistory" />
+          </div>
         </div>
 
         <div v-if="activeTab === 'myReviews'">
@@ -45,7 +67,7 @@
                 <small>{{ formatDate(review.data_criacao) }}</small>
               </div>
             </div>
-            </div>
+          </div>
           <div v-else class="no-data">Você ainda não escreveu nenhuma review.</div>
         </div>
 
@@ -58,7 +80,7 @@
                 <small>Por: {{ review.usuario }} em {{ formatDate(review.data_criacao) }}</small>
               </div>
             </div>
-            </div>
+          </div>
           <div v-else class="no-data">Você ainda não curtiu nenhuma review.</div>
         </div>
       </div>
@@ -72,16 +94,17 @@ import { RouterLink } from 'vue-router';
 import api from '@/services/api';
 import { UserCircle2, Settings } from 'lucide-vue-next';
 import { useToast } from 'vue-toastification';
+import PointsChart from '@/components/PointsChart.vue';
 
 const activeTab = ref('details');
 const profileData = ref(null);
 const myReviews = ref(null);
 const likedReviews = ref(null);
-
+const pointsHistory = ref(null);
 const isLoadingProfile = ref(true);
 const isLoadingMyReviews = ref(false);
 const isLoadingLikedReviews = ref(false);
-
+const isLoadingChart = ref(true);
 const error = ref(null);
 const toast = useToast();
 
@@ -129,8 +152,22 @@ const fetchLikedReviews = async (page = 1) => {
   }
 };
 
+const fetchPointsHistory = async () => {
+  isLoadingChart.value = true;
+  try {
+    const response = await api.get('/usuarios/me/points-history');
+    pointsHistory.value = response.data;
+  } catch (err) {
+    console.error('Não foi possível carregar o histórico de pontos.', err);
+    pointsHistory.value = null; 
+  } finally {
+    isLoadingChart.value = false;
+  }
+};
+
 onMounted(() => {
   fetchProfileData();
+  fetchPointsHistory();
 });
 
 watch(activeTab, (newTab) => {
@@ -180,9 +217,6 @@ watch(activeTab, (newTab) => {
   border-bottom-color: var(--cor-secundaria);
 }
 .tab-content { margin-top: 1.5rem; }
-.details-section ul { list-style: none; padding: 0; }
-.details-section li { padding: 0.5rem 0; color: var(--cor-texto-suave); }
-.details-section strong { color: var(--cor-texto); font-weight: 700; }
 .reviews-list { display: flex; flex-direction: column; gap: 1rem; }
 .review-item { padding: 1rem; }
 .review-item p { font-style: italic; margin-bottom: 0.5rem; }
@@ -205,5 +239,42 @@ watch(activeTab, (newTab) => {
 .settings-btn:hover {
   background-color: var(--cor-fundo);
   color: var(--cor-texto);
+}
+.profile-details-list {
+  display: flex;
+  flex-direction: column;
+}
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--cor-fundo);
+}
+.detail-item:last-child {
+  border-bottom: none;
+}
+.detail-label {
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+.detail-value {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+.divider {
+  border: none;
+  border-top: 1px solid var(--cor-borda);
+  margin: 1.5rem 0;
+}
+.chart-title {
+  text-align: center;
+  font-weight: 700;
+  color: var(--cor-texto-suave);
+  margin-bottom: 1rem;
+}
+.loading-chart {
+  text-align: center;
+  padding: 2rem;
+  color: var(--cor-texto-suave);
 }
 </style>

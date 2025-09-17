@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
+import VueApexCharts from "vue3-apexcharts"; // 1. IMPORTAR O PLUGIN
 
 import App from './App.vue'
 import router from './router'
@@ -16,7 +17,7 @@ app.use(createPinia())
 
 const authStore = useAuthStore();
 if (authStore.isAuthenticated) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`;
+  api.defaults.headers.common['Authorization'] = `Bearer ${authStore.accessToken}`;
 }
 
 const toastOptions = {
@@ -37,6 +38,8 @@ const toastOptions = {
   newestOnTop: true
 };
 app.use(Toast, toastOptions);
+
+app.use(VueApexCharts);
 
 app.use(router)
 
