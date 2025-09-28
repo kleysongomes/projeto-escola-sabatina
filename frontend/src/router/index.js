@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth';
 import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
 import RankingView from '../views/RankingView.vue';
-import AllReviewsView from '../views/AllReviewsView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import AboutView from '../views/AboutView.vue';
 import ReportBugView from '../views/ReportBugView.vue';
@@ -23,9 +22,6 @@ const router = createRouter({
     },
     {
       path: '/ranking', name: 'ranking', component: RankingView, meta: { requiresAuth: true }
-    },
-    {
-      path: '/reviews', name: 'reviews', component: AllReviewsView, meta: { requiresAuth: true }
     },
     { 
       path: '/register', name: 'register', component: RegisterView

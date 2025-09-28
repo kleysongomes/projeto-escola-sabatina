@@ -1,4 +1,6 @@
-<template>
+//TELA DESCONTINUADA
+
+<!-- <template>
   <div>
     <h1 class="title">Mural de Reviews</h1>
     <div v-if="isLoading" class="loading">Carregando reviews...</div>
@@ -236,4 +238,4 @@ watch(() => route.query, (newQuery) => {
   color: var(--cor-texto-suave);
   opacity: 0.8;
 }
-</style>
+</style> -->

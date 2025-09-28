@@ -1,11 +1,12 @@
+TELA DESCONTINUADA BKP
+
+Migrada para a home
+
 <template>
   <nav class="navbar-background">
     <div class="navbar-content">
       <RouterLink to="/" class="nav-link" title="Home">
         <SquarePen :size="28" />
-      </RouterLink>
-      <RouterLink to="/reviews" class="nav-link" title="Mural de Reviews">
-        <ClipboardList :size="28" />
       </RouterLink>
       <RouterLink to="/ranking" class="nav-link" title="Ranking">
         <Trophy :size="28" />
@@ -19,11 +20,11 @@
 
 <script setup>
 import { RouterLink } from 'vue-router';
-import { SquarePen, Trophy, ClipboardList, UserCircle2 } from 'lucide-vue-next';
+// O ícone ClipboardList foi removido da importação
+import { SquarePen, Trophy, UserCircle2 } from 'lucide-vue-next';
 </script>
 
 <style scoped>
-
 .navbar-background {
   position: fixed;
   bottom: 0;
