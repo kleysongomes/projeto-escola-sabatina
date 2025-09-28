@@ -1,56 +1,73 @@
 <template>
   <div class="home-container">
-    <div v-if="isLoading" class="loading">Carregando lição...</div>
-    <div v-else-if="error" class="error-message">{{ error }}</div>
-    
-    <div v-else-if="lesson" class="lesson-content">
-      <div class="card lesson-card">
-        <span class="lesson-date">Título de hoje {{ lesson.date }}</span>
-        <h1 class="lesson-title">{{ lesson.title }}</h1>
-      </div>
-      
-      <div class="card review-card">
-        <form v-if="!hasSubmittedToday" @submit.prevent="handleSubmitReview">
-          <h2 class="form-title">Qual foi o seu aprendizado?</h2>
+    <div class="card create-review-card">
+      <div v-if="!hasSubmittedToday">
+        <h2 class="form-title">O que você aprendeu hoje?</h2>
+        <form @submit.prevent="handleSubmitReview">
           <div class="textarea-wrapper">
             <textarea
               v-model="reviewContent"
-              placeholder="Escreva aqui sua reflexão sobre o estudo de hoje..."
-              rows="8"
+              placeholder="Escreva aqui sua reflexão..."
+              rows="4"
               required
               class="input-field"
               maxlength="500" 
             ></textarea>
             <small class="char-counter">{{ reviewContent.length }} / 500</small>
           </div>
-          
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Enviando...' : 'Enviar review' }}
+            {{ isSubmitting ? 'Enviando...' : 'Enviar Review' }}
           </button>
         </form>
-
-        <div v-else class="submitted-state">
-          <CheckCircle2 :size="60" class="success-icon" />
-          <h2 class="form-title">Parabéns!</h2>
-          <p>Você já completou seu estudo de hoje. Volte amanhã para ganhar mais pontos!</p>
-          <RouterLink to="/reviews" class="btn-secondary">Ver outras reviews</RouterLink>
-
-          <button v-if="authStore.user?.isAdmin" @click="writeAnother" class="btn-another-review">
-            Escrever Outra Review (Admin)
-          </button>
-        </div>
       </div>
-
-      <div v-if="bannerImages.length > 0" class="banner-feed">
-        <img 
-          v-for="(src, index) in bannerImages" 
-          :key="index" 
-          :src="src" 
-          alt="Banner" 
-          class="feed-banner-image" 
-        />
+      <div v-else class="submitted-state">
+        <CheckCircle2 :size="40" class="success-icon" />
+        <div class="submitted-text">
+          <h2 class="form-title">Parabéns!</h2>
+          <p>Você já completou seu estudo de hoje. Volte amanhã!</p>
+        </div>
+        <button v-if="authStore.user?.isAdmin" @click="writeAnother" class="btn-another-review">
+          Escrever Outra (Admin)
+        </button>
       </div>
     </div>
+
+    <div v-if="isLoading" class="loading">Carregando reviews...</div>
+    <div v-else-if="error" class="error-message">{{ error }}</div>
+    <div v-else-if="reviewsData && reviewsData.reviews.length > 0" class="feed-container">
+      <div class="reviews-list">
+        <div class="card review-card-item" v-for="(review, index) in reviewsData.reviews" :key="review.id">
+          <p class="review-content">"{{ review.conteudo }}"</p>
+          <div class="review-footer">
+            <div class="author-info">
+              <span class="author">- {{ review.usuario }}</span>
+              <small class="review-date">{{ formatDate(review.data_criacao) }}</small>
+            </div>
+            <div class="actions">
+              <button @click="handleLike(review.id, index)" class="action-btn like-btn" :class="{ 'liked': review.isLikedByCurrentUser }" title="Curtir">
+                <Heart :size="18" />
+                <span>{{ review.likesCount }}</span>
+              </button>
+              <button v-if="canShare" @click="handleShare(review)" class="action-btn share-btn" title="Compartilhar">
+                <Share2 :size="18" />
+              </button>
+              <button @click="handleReport(review.id)" class="action-btn report-btn" title="Reportar">
+                <Flag :size="18" />
+              </button>
+              <button v-if="authStore.user?.isAdmin" @click="handleDelete(review.id)" class="action-btn delete-btn" title="Deletar Review">
+                <Trash2 :size="18" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pagination">
+        <button @click="changePage(reviewsData.currentPage - 1)" :disabled="reviewsData.currentPage <= 1">Anterior</button>
+        <span>Página {{ reviewsData.currentPage }} de {{ reviewsData.totalPages }}</span>
+        <button @click="changePage(reviewsData.currentPage + 1)" :disabled="reviewsData.currentPage >= reviewsData.totalPages">Próximo</button>
+      </div>
+    </div>
+    <div v-else class="no-data">Nenhuma review foi enviada ainda. Seja o primeiro!</div>
 
     <div v-if="showInstallBanner" class="install-banner">
       <span>Instale o app para uma melhor experiência!</span>
@@ -60,76 +77,64 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { RouterLink } from 'vue-router';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
-import { CheckCircle2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import { CheckCircle2, Trash2, Heart, Flag, Share2 } from 'lucide-vue-next';
 
-const bannerModules = import.meta.glob('@/assets/banners/*.*', { eager: true });
-const bannerImages = ref(
-  Object.values(bannerModules).map((module) => module.default)
-);
-
-const lesson = ref(null);
 const reviewContent = ref('');
-const isLoading = ref(true);
-const error = ref(null);
 const isSubmitting = ref(false);
 const hasSubmittedToday = ref(false);
+const reviewsData = ref(null);
+const isLoading = ref(true);
+const error = ref(null);
+const authStore = useAuthStore();
 const toast = useToast();
+const route = useRoute();
+const router = useRouter();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
-const authStore = useAuthStore();
+const canShare = !!navigator.share;
 
-onMounted(() => {
-  window.scrollTo(0, 0);
+const formatDate = (isoString) => {
+  if (!isoString) return '';
+  const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return new Date(isoString).toLocaleString('pt-BR', options);
+};
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    installPromptEvent.value = e;
-    showInstallBanner.value = true;
-  });
-  
-  const cachedLesson = JSON.parse(localStorage.getItem('cachedLesson'));
-  const todayStr = new Date().toLocaleDateString('pt-BR');
-
-  if (cachedLesson && cachedLesson.dateStr === todayStr) {
-    lesson.value = cachedLesson.data;
-    hasSubmittedToday.value = cachedLesson.data.userHasSubmitted;
-    isLoading.value = false;
-  } else {
-    fetchLesson();
-  }
-});
-
-const fetchLesson = async () => {
+const fetchInitialData = async () => {
+  isLoading.value = true;
+  error.value = null;
   try {
-    const response = await api.get('/lessons/today');
-    lesson.value = response.data;
-    hasSubmittedToday.value = response.data.userHasSubmitted; 
-
-    const todayStr = new Date().toLocaleDateString('pt-BR');
-    const lessonToCache = {
-      dateStr: todayStr,
-      data: response.data,
-    };
-    localStorage.setItem('cachedLesson', JSON.stringify(lessonToCache));
-
+    const page = parseInt(route.query.page) || 1;
+    const [profileRes, reviewsRes] = await Promise.all([
+      api.get('/usuarios/me'),
+      api.get(`/reviews?page=${page}`)
+    ]);
+    hasSubmittedToday.value = profileRes.data.userHasSubmitted;
+    reviewsData.value = reviewsRes.data;
   } catch (err) {
-    error.value = 'Não foi possível carregar a lição de hoje.';
+    error.value = 'Não foi possível carregar o feed.';
+    console.error(err);
   } finally {
     isLoading.value = false;
   }
 };
 
-const triggerInstallPrompt = async () => {
-  if (!installPromptEvent.value) return;
-  installPromptEvent.value.prompt();
-  const { outcome } = await installPromptEvent.value.userChoice;
-  installPromptEvent.value = null;
-  showInstallBanner.value = false;
+const fetchReviewsOnly = async () => {
+  isLoading.value = true;
+  error.value = null;
+  try {
+    const page = parseInt(route.query.page) || 1;
+    const response = await api.get(`/reviews?page=${page}`);
+    reviewsData.value = response.data;
+  } catch (err) {
+    error.value = 'Não foi possível carregar as reviews.';
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const handleSubmitReview = async () => {
@@ -141,19 +146,16 @@ const handleSubmitReview = async () => {
   try {
     const response = await api.post('/reviews', {
       conteudo: reviewContent.value,
-      indiceLicao: lesson.value.index,
+      indiceLicao: new Date().toISOString().split('T')[0],
     });
     toast.success(`Parabéns! Você ganhou ${response.data.pontos_ganhos} pontos!`);
+    
+    const newReview = { ...response.data, usuario: authStore.user.usuario, likesCount: 0, isLikedByCurrentUser: false };
+    reviewsData.value.reviews.unshift(newReview);
+    
     reviewContent.value = '';
-
     if (!authStore.user?.isAdmin) {
       hasSubmittedToday.value = true;
-    }
-    
-    const cachedLesson = JSON.parse(localStorage.getItem('cachedLesson'));
-    if (cachedLesson && !authStore.user?.isAdmin) {
-      cachedLesson.data.userHasSubmitted = true;
-      localStorage.setItem('cachedLesson', JSON.stringify(cachedLesson));
     }
   } catch (err) {
     toast.error(err.response?.data?.error || 'Ocorreu um erro ao enviar.');
@@ -162,157 +164,152 @@ const handleSubmitReview = async () => {
   }
 };
 
-const writeAnother = () => {
-  hasSubmittedToday.value = false;
+const writeAnother = () => { hasSubmittedToday.value = false; };
+
+const changePage = (page) => {
+  if (reviewsData.value && page > 0 && page <= reviewsData.value.totalPages) {
+    router.push({ query: { page } });
+  }
 };
+
+const triggerInstallPrompt = async () => {
+  if (!installPromptEvent.value) return;
+  installPromptEvent.value.prompt();
+  installPromptEvent.value = null;
+  showInstallBanner.value = false;
+};
+
+const handleLike = async (reviewId, index) => {
+  const review = reviewsData.value.reviews[index];
+  review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
+  review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
+  try {
+    await api.post(`/reviews/${reviewId}/like`);
+  } catch (err) {
+    review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
+    review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
+    toast.error('Ocorreu um erro ao processar sua curtida.');
+  }
+};
+
+const handleReport = async (reviewId) => {
+  if (confirm('Deseja reportar esta review por conteúdo inadequado?')) {
+    try {
+      const response = await api.post(`/reviews/${reviewId}/report`);
+      toast.success(response.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Não foi possível reportar a review.');
+    }
+  }
+};
+
+const handleShare = async (review) => {
+  const siteUrl = 'https://studup.app/';
+  const shareData = {
+    title: 'Review da Lição - Stud+',
+    text: `Confira minha review de hoje no Stud+:\n\n"${review.conteudo}"\n\nEstude você também:`,
+    url: siteUrl
+  };
+  try {
+    await navigator.share(shareData);
+  } catch (err) {
+    console.error('Erro ao compartilhar:', err);
+  }
+};
+
+const handleDelete = async (reviewId) => {
+  if (confirm('Tem certeza que deseja deletar esta review? Os pontos do usuário serão revertidos.')) {
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      toast.success('Review deletada com sucesso!');
+      reviewsData.value.reviews = reviewsData.value.reviews.filter(r => r.id !== reviewId);
+    } catch (err) {
+      toast.error('Não foi possível deletar a review.');
+    }
+  }
+};
+
+onMounted(() => {
+  window.scrollTo(0, 0);
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPromptEvent.value = e;
+    showInstallBanner.value = true;
+  });
+  fetchInitialData();
+});
+
+watch(() => route.query.page, (newPage, oldPage) => {
+  if (newPage !== oldPage) {
+    fetchReviewsOnly();
+  }
+});
 </script>
 
 <style scoped>
-.home-container { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 1.5rem;
-}
-.lesson-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-.banner-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.feed-banner-image {
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.loading, .error-message { 
-  text-align: center; 
-  margin-top: 4rem; 
-  font-size: 1.2rem; 
-}
-.lesson-card { 
-  text-align: center; 
-  border-top: 4px solid var(--cor-secundaria); 
-}
-.lesson-date { 
-  color: var(--cor-texto-suave); 
-  font-weight: 700; 
-}
-.lesson-title { 
-  font-size: 2rem; 
-  font-weight: 900; 
-  line-height: 1.2; 
-}
-.review-card { 
-  border-top: 4px solid var(--cor-primaria); 
-}
-.form-title { 
-  font-weight: 900; 
-  margin-bottom: 1rem; 
-  text-align: center; 
-}
-.textarea-wrapper {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-textarea { 
-  resize: vertical; 
-}
-.char-counter {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 0.8rem;
-  color: var(--cor-texto-suave);
-}
-.btn-primary:disabled {
-  background-color: var(--cor-texto-suave);
-  border-bottom-color: var(--cor-texto-suave);
-  cursor: not-allowed;
-}
-.review-card form .btn-primary {
-  width: 100%;
-}
-.submitted-state {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-.success-icon {
-  color: var(--cor-primaria);
-}
-.submitted-state p {
-  color: var(--cor-texto-suave);
-  max-width: 80%;
-  margin: 0 auto;
-}
-.btn-secondary {
-  margin-top: 1rem;
-  padding: 0.8rem 1.5rem;
+.home-container { display: flex; flex-direction: column; gap: 2rem; }
+.create-review-card { padding: 1.5rem; }
+.form-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; text-align: left; }
+.textarea-wrapper { position: relative; margin-bottom: 1rem; }
+textarea { resize: vertical; margin-bottom: 0; min-height: 50px; }
+.char-counter { position: absolute; bottom: 10px; right: 10px; font-size: 0.8rem; color: var(--cor-texto-suave); }
+.create-review-card .btn-primary { width: 100%; }
+.submitted-state { display: flex; align-items: center; gap: 1rem; }
+.success-icon { color: var(--cor-primaria); }
+.submitted-text { flex-grow: 1; text-align: left; }
+.submitted-state .form-title { font-size: 1.1rem; margin-bottom: 0; }
+.submitted-state p { font-size: 0.9rem; color: var(--cor-texto-suave); }
+.btn-another-review { font-size: 0.8rem; flex-shrink: 0; text-decoration: underline; background: none; border: none; cursor: pointer; color: var(--cor-texto-suave); }
+
+.loading, .no-data, .error-message { text-align: center; margin-top: 2rem; }
+.reviews-list { display: flex; flex-direction: column; gap: 1.5rem; }
+.review-card-item { border-left: 4px solid var(--cor-secundaria); }
+.review-content { margin-bottom: 1rem; font-style: italic; color: var(--cor-texto-suave); }
+.review-footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.9rem; }
+.author-info { display: flex; flex-direction: column; align-items: flex-start; }
+.author { font-weight: 700; }
+.review-date { font-size: 0.8rem; color: var(--cor-texto-suave); opacity: 0.8; }
+.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
+.pagination button {
   background-color: var(--cor-container);
-  color: var(--cor-secundaria);
-  border: 2px solid var(--cor-secundaria);
-  border-radius: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background-color 0.2s, color 0.2s;
-}
-.btn-secondary:hover {
-  background-color: var(--cor-secundaria);
-  color: var(--cor-container);
-}
-.btn-another-review {
-  margin-top: 0.5rem;
-  background: none;
-  border: none;
+  border: 2px solid var(--cor-borda);
   color: var(--cor-texto-suave);
-  text-decoration: underline;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
   font-family: 'Nunito', sans-serif;
-  font-size: 0.9rem;
-  padding: 0.5rem;
+  font-weight: 700;
 }
+.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.actions { display: flex; align-items: center; gap: 0.75rem; }
+.action-btn {
+  display: flex; align-items: center; gap: 0.4rem; background: none;
+  border: 1px solid var(--cor-borda); padding: 0.3rem 0.7rem; border-radius: 1rem;
+  cursor: pointer; font-size: 0.9rem; color: var(--cor-texto-suave); transition: all 0.2s ease;
+}
+.action-btn:hover { border-color: var(--cor-texto); color: var(--cor-texto); }
+.like-btn.liked { background-color: #ffeded; color: var(--cor-erro); border-color: var(--cor-erro); }
+.like-btn.liked :deep(svg) { fill: var(--cor-erro); }
+.report-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+.share-btn:hover { border-color: var(--cor-primaria); color: var(--cor-primaria); }
+.delete-btn { background-color: transparent; padding: 0.4rem; border: none; }
+.delete-btn:hover { color: var(--cor-erro); background-color: #ffeded; }
 .install-banner {
-  position: fixed;
-  bottom: 80px;
-  left: 1.5rem;
-  right: 1.5rem;
-  max-width: calc(500px - 3rem);
-  margin: 0 auto;
-  background-color: var(--cor-secundaria);
-  color: white;
-  padding: 1rem;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  animation: slide-up 0.5s ease-out;
+  position: fixed; bottom: 80px; left: 1.5rem; right: 1.5rem;
+  max-width: calc(500px - 3rem); margin: 0 auto; background-color: var(--cor-secundaria);
+  color: white; padding: 1rem; border-radius: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slide-up 0.5s ease-out;
   z-index: 20;
 }
 @keyframes slide-up {
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 .btn-install {
-  background-color: var(--cor-container);
-  color: var(--cor-secundaria);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 700;
+  background-color: var(--cor-container); color: var(--cor-secundaria);
+  border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700;
   cursor: pointer;
 }
 </style>
