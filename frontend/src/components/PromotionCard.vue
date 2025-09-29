@@ -57,8 +57,8 @@ const displayText = computed(() => {
 }
 .promo-image {
   width: 100%;
-  height: 180px;
-  object-fit: cover;
+  height: auto; /* Permite que a altura se ajuste à proporção da imagem */
+  display: block; /* Remove espaços extras abaixo da imagem */
 }
 .promo-text {
   padding: 1rem 1.5rem;
@@ -90,7 +90,6 @@ const displayText = computed(() => {
   text-decoration: underline;
   font-size: 0.9rem;
 }
-
 .btn-saiba-mais {
   width: 100%;
   max-width: 300px;
