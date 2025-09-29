@@ -1,7 +1,11 @@
 <template>
   <div class="settings-container">
     <div class="header-nav">
+      <button @click="router.back()" class="back-btn" aria-label="Voltar">
+        <ArrowLeft :size="24" />
+      </button>
       <h1 class="page-title">
+        <Settings :size="28" />
         Configurações
       </h1>
     </div>
@@ -59,6 +63,22 @@
       </button>
     </div>
 
+    <div v-if="authStore.user?.isAdmin" class="admin-panel">
+      <h2 class="admin-title">Painel do Administrador</h2>
+      <div class="settings-list">
+        <RouterLink to="/admin/propagandas" class="card setting-item">
+          <div class="item-icon-wrapper admin-icon">
+            <LayoutPanelLeft :size="24" />
+          </div>
+          <div class="item-content">
+            <span class="item-title">Gerenciar Propagandas</span>
+            <span class="item-description">Adicione, edite ou remova propagandas.</span>
+          </div>
+          <ChevronRight :size="24" class="item-chevron" />
+        </RouterLink>
+      </div>
+    </div>
+
     <p class="support-text">
       Não consegue resolver pelo app? Nos mande um e-mail: 
       <a href="mailto:suportedesbravalink@gmail.com">suportedesbravalink@gmail.com</a>
@@ -79,7 +99,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
-import { Palette, User, Lock, ShieldCheck, ChevronRight } from 'lucide-vue-next';
+import { Settings, ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight, LayoutPanelLeft } from 'lucide-vue-next';
 import BaseModal from '@/components/BaseModal.vue';
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -170,13 +190,6 @@ const toggleTheme = () => {
   color: var(--cor-texto-suave);
   opacity: 0.5;
 }
-.setting-item.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-.setting-item.disabled:hover {
-  background-color: var(--cor-container);
-}
 .theme-switch-wrapper {
   position: relative;
 }
@@ -241,5 +254,22 @@ input:checked + .slider:before {
   color: var(--cor-secundaria);
   text-decoration: underline;
   font-weight: 600;
+}
+
+.admin-panel {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px dashed var(--cor-borda);
+}
+.admin-title {
+  font-weight: 900;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--cor-erro);
+}
+.admin-icon {
+  background-color: #ffe4e6;
+  color: var(--cor-erro);
 }
 </style>

@@ -10,6 +10,11 @@ import ProfileView from '../views/ProfileView.vue';
 import SettingsView from '../views/SettingsView.vue';
 import UpdateProfileView from '../views/UpdateProfileView.vue';
 import ChangePasswordView from '../views/ChangePasswordView.vue';
+import DiscoverView from '../views/DiscoverView.vue';
+// 1. IMPORTAR AS NOVAS VIEWS DE ADMIN
+import AdminPromotionsView from '../views/AdminPromotionsView.vue';
+import AdminPromotionFormView from '../views/AdminPromotionFormView.vue';
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,16 +49,34 @@ const router = createRouter({
     {
       path: '/configuracoes/senha', name: 'change-password', component: ChangePasswordView, meta: { requiresAuth: true }
     },
+    {
+      path: '/descubra', name: 'descubra', component: DiscoverView, meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin/propagandas', name: 'admin-promotions', component: AdminPromotionsView, meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/propagandas/nova', name: 'admin-promotions-new', component: AdminPromotionFormView, meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/propagandas/editar/:id', name: 'admin-promotions-edit', component: AdminPromotionFormView, meta: { requiresAuth: true, requiresAdmin: true }
+    }
   ]
 });
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
+  
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'login' });
-  } else {
-    next();
+    return next({ name: 'login' });
   }
+  
+  if (to.meta.requiresAdmin && !authStore.user?.isAdmin) {
+    console.warn('Tentativa de acesso não autorizado à rota de admin.');
+    return next({ name: 'home' });
+  }
+  
+  next();
 });
 
 export default router;

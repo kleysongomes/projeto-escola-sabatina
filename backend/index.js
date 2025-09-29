@@ -12,7 +12,6 @@ const corsOptions = {
     'https://studup.app',
     'https://www.studup.app'
   ],
-  // Garante que todos os métodos que usamos e usaremos sejam permitidos
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
@@ -41,6 +40,10 @@ app.use('/api/igrejas', igrejasRoutes);
 // Importa e usa as rotas de autenticação (refresh token)
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
+
+// Importa e usa as rotas de propaganda
+const propagandaRoutes = require('./routes/propagandaRoutes');
+app.use('/api/propagandas', propagandaRoutes);
 
 
 // Função que inicializa o banco de dados e depois inicia o servidor
