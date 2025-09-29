@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS review_likes (
   UNIQUE(user_id, review_id)
 );
 
+-- Cria a tabela de ligação para reports
 CREATE TABLE IF NOT EXISTS review_reports (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL,
@@ -74,4 +75,22 @@ CREATE TABLE IF NOT EXISTS bug_reports (
   status VARCHAR(50) NOT NULL DEFAULT 'aberto',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- ADICIONADO: Cria a tabela para as propagandas
+CREATE TABLE IF NOT EXISTS propagandas (
+    id SERIAL PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    imagem_url TEXT NOT NULL,
+    link_url TEXT,
+    target_pais VARCHAR(100),
+    target_estado VARCHAR(100),
+    target_cidade VARCHAR(100),
+    target_igreja_id INT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_igreja_target
+        FOREIGN KEY(target_igreja_id)
+        REFERENCES igrejas(id)
+        ON DELETE SET NULL
 );
