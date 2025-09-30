@@ -5,7 +5,7 @@
         <ArrowLeft :size="24" />
       </button>
       <h1 class="page-title">
-        Moderar Reviews Reportadas
+        Reviews Reportadas
       </h1>
     </div>
 
