@@ -44,14 +44,9 @@
     <div class="card info-card">
       <h2 class="section-title"><PartyPopper  :size="20" /> O que há de novo </h2>
       <ul>
-        <li><strong>NOVO</strong>: Perfil de usuário</li>
-        <li><strong>NOVO</strong>: Configurações de usuário</li>
-        <li><strong>NOVO</strong>: Tema noturno</li>
-        <li><strong>NOVO</strong>: Login único(a cada 30 dias)</li>
-        <li><strong>NOVO</strong>: Serviço publicado</li>
-        <li><strong>NOVO</strong>: Servidor dedicado 24/7</li>
-        <li><strong>NOVO</strong>: Melhoria de Layout</li>
-        <li><strong>NOVO</strong>: Política de Privacidade</li>
+        <li><strong>NOVO</strong>: Novo Feed</li>
+        <li><strong>NOVO</strong>: Mural de Descobertas</li>
+        <li><strong>NOVO</strong>: Melhorias de Layout</li>
       </ul>
     </div>
 
