@@ -207,10 +207,39 @@ const reportReview = async (req, res) => {
   }
 };
 
+const listReportedReviews = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        rr.review_id,
+        rr.created_at AS report_date,
+        r.conteudo,
+        u_author.usuario AS author_username,
+        u_reporter.usuario AS reporter_username,
+        COUNT(rr_count.review_id) AS report_count
+      FROM review_reports rr
+      JOIN reviews r ON rr.review_id = r.id
+      JOIN usuarios u_author ON r.id_usuario = u_author.id
+      JOIN usuarios u_reporter ON rr.user_id = u_reporter.id
+      -- Sub-consulta para contar o total de reports por review
+      JOIN review_reports rr_count ON rr.review_id = rr_count.review_id
+      GROUP BY rr.review_id, rr.created_at, r.conteudo, u_author.usuario, u_reporter.usuario
+      ORDER BY report_count DESC, report_date DESC;
+    `;
+    const result = await db.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Erro ao listar reviews reportadas:", error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
+};
+
+
 module.exports = {
   submitReview,
   listAllReviews,
   deleteReview,
   likeReview,
   reportReview,
+  listReportedReviews,
 };

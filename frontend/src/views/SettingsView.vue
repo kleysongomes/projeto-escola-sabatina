@@ -1,11 +1,7 @@
 <template>
   <div class="settings-container">
     <div class="header-nav">
-      <button @click="router.back()" class="back-btn" aria-label="Voltar">
-        <ArrowLeft :size="24" />
-      </button>
       <h1 class="page-title">
-        <Settings :size="28" />
         Configurações
       </h1>
     </div>
@@ -76,6 +72,17 @@
           </div>
           <ChevronRight :size="24" class="item-chevron" />
         </RouterLink>
+        
+        <RouterLink to="/admin/reviews-reportadas" class="card setting-item">
+          <div class="item-icon-wrapper admin-icon">
+            <ShieldAlert :size="24" />
+          </div>
+          <div class="item-content">
+            <span class="item-title">Moderar Reviews</span>
+            <span class="item-description">Veja as reviews reportadas pela comunidade.</span>
+          </div>
+          <ChevronRight :size="24" class="item-chevron" />
+        </RouterLink>
       </div>
     </div>
 
@@ -99,7 +106,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
-import { Settings, ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight, LayoutPanelLeft } from 'lucide-vue-next';
+import { ArrowLeft, Palette, User, Lock, ShieldCheck, ChevronRight, LayoutPanelLeft, ShieldAlert } from 'lucide-vue-next';
 import BaseModal from '@/components/BaseModal.vue';
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -255,7 +262,6 @@ input:checked + .slider:before {
   text-decoration: underline;
   font-weight: 600;
 }
-
 .admin-panel {
   margin-top: 2rem;
   padding-top: 1.5rem;

@@ -11,9 +11,10 @@ import SettingsView from '../views/SettingsView.vue';
 import UpdateProfileView from '../views/UpdateProfileView.vue';
 import ChangePasswordView from '../views/ChangePasswordView.vue';
 import DiscoverView from '../views/DiscoverView.vue';
-// 1. IMPORTAR AS NOVAS VIEWS DE ADMIN
 import AdminPromotionsView from '../views/AdminPromotionsView.vue';
 import AdminPromotionFormView from '../views/AdminPromotionFormView.vue';
+// 1. IMPORTAR A NOVA VIEW DE ADMIN
+import AdminReportedReviewsView from '../views/AdminReportedReviewsView.vue';
 
 
 const router = createRouter({
@@ -60,6 +61,9 @@ const router = createRouter({
     },
     {
       path: '/admin/propagandas/editar/:id', name: 'admin-promotions-edit', component: AdminPromotionFormView, meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/reviews-reportadas', name: 'admin-reported-reviews', component: AdminReportedReviewsView, meta: { requiresAuth: true, requiresAdmin: true }
     }
   ]
 });
