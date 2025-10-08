@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div class.vue
     class="home-container"
     @touchstart="onTouchStart"
     @touchmove="onTouchMove"
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div v-if="isLoading && !isRefreshing" class="loading">Carregando feed...</div>
+    <div v-if="isLoading" class="loading">Carregando feed...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div v-else-if="reviewsData && reviewsData.reviews.length > 0" class="feed-container">
       <div class="reviews-list">
@@ -55,11 +55,10 @@
           @review-deleted="handleReviewDeleted"
         />
       </div>
-      <div class="pagination">
-        <button @click="changePage(reviewsData.currentPage - 1)" :disabled="reviewsData.currentPage <= 1">Anterior</button>
-        <span>Página {{ reviewsData.currentPage }} de {{ reviewsData.totalPages }}</span>
-        <button @click="changePage(reviewsData.currentPage + 1)" :disabled="reviewsData.currentPage >= reviewsData.totalPages">Próximo</button>
-      </div>
+
+      <div ref="loadMoreTrigger" class="load-more-trigger"></div>
+
+      <div v-if="isLoadingMore" class="loading">Carregando mais...</div>
     </div>
     <div v-else class="no-data">Nenhuma review foi enviada ainda. Seja o primeiro!</div>
 
@@ -98,6 +97,10 @@ const pullDistance = ref(0);
 const isRefreshing = ref(false);
 const PULL_THRESHOLD = 80;
 
+const isLoadingMore = ref(false);
+const loadMoreTrigger = ref(null);
+let observer = null;
+
 const fetchInitialData = async () => {
   if (!isRefreshing.value) {
     isLoading.value = true;
@@ -121,17 +124,20 @@ const fetchInitialData = async () => {
   }
 };
 
-const fetchReviewsOnly = async () => {
-  isLoading.value = true;
-  error.value = null;
+const loadMoreReviews = async () => {
+  if (isLoadingMore.value || !reviewsData.value || reviewsData.value.currentPage >= reviewsData.value.totalPages) {
+    return;
+  }
+  isLoadingMore.value = true;
   try {
-    const page = parseInt(route.query.page) || 1;
-    const response = await api.get(`/reviews?page=${page}`);
-    reviewsData.value = response.data;
+    const nextPage = reviewsData.value.currentPage + 1;
+    const response = await api.get(`/reviews?page=${nextPage}`);
+    reviewsData.value.reviews.push(...response.data.reviews);
+    reviewsData.value.currentPage = response.data.currentPage;
   } catch (err) {
-    error.value = 'Não foi possível carregar as reviews.';
+    toast.error('Não foi possível carregar mais reviews.');
   } finally {
-    isLoading.value = false;
+    isLoadingMore.value = false;
   }
 };
 
@@ -177,12 +183,6 @@ const handleSubmitReview = async () => {
 };
 
 const writeAnother = () => { hasSubmittedToday.value = false; };
-
-const changePage = (page) => {
-  if (reviewsData.value && page > 0 && page <= reviewsData.value.totalPages) {
-    router.push({ query: { page } });
-  }
-};
 
 const triggerInstallPrompt = async () => {
   if (!installPromptEvent.value) return;
@@ -243,17 +243,24 @@ onMounted(() => {
     installPromptEvent.value = e;
     showInstallBanner.value = true;
   });
-  // Removido os listeners globais, pois agora estão no template
-  fetchInitialData();
+
+  fetchInitialData().then(() => {
+    if (loadMoreTrigger.value) {
+      observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreReviews();
+        }
+      }, {
+        rootMargin: '200px',
+      });
+      observer.observe(loadMoreTrigger.value);
+    }
+  });
 });
 
 onUnmounted(() => {
-  // Limpeza de listeners não é mais necessária aqui
-});
-
-watch(() => route.query.page, (newPage, oldPage) => {
-  if (newPage && (newPage !== oldPage)) {
-    fetchReviewsOnly();
+  if (observer) {
+    observer.disconnect();
   }
 });
 
@@ -341,17 +348,6 @@ watch(() => route.query.page, (newPage, oldPage) => {
   font-size: 0.8rem;
   color: var(--cor-texto-suave);
 }
-.btn-submit-review {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  border-radius: 20px;
-  border-bottom-width: 3px;
-  text-transform: none;
-}
-.btn-submit-review:disabled {
-  background-color: #a0c3f0;
-  border-bottom-color: #a0c3f0;
-}
 .submitted-state {
   display: flex;
   align-items: center;
@@ -388,29 +384,10 @@ watch(() => route.query.page, (newPage, oldPage) => {
 .reviews-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Re-adiciona o espaçamento entre os cards */
+  gap: 1.5rem;
 }
-/* O seletor :deep foi REMOVIDO para que o ReviewCard use seu próprio estilo */
-
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 2rem;
-}
-.pagination button {
-  background-color: var(--cor-container);
-  border: 2px solid var(--cor-borda);
-  color: var(--cor-texto-suave);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-}
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.load-more-trigger {
+  height: 50px;
 }
 .install-banner {
   position: fixed;
