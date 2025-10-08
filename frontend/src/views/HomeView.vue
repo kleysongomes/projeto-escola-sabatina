@@ -1,65 +1,59 @@
 <template>
-  <div class="home-container">
+  <div 
+    class="home-container"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
+    @touchend="onTouchEnd"
+  >
+    <div class="pull-to-refresh-indicator" :style="{ transform: `translateY(${pullDistance}px)`, opacity: pullDistance > 0 || isRefreshing ? 1 : 0 }">
+      <div class="icon-wrapper" :class="{ refreshing: isRefreshing }">
+        <Loader v-if="isRefreshing" :size="24" />
+        <ArrowDown v-else :size="24" :style="{ transform: `rotate(${pullDistance / 2}deg)` }" />
+      </div>
+    </div>
+
     <div class="card create-review-card">
-      <div v-if="!hasSubmittedToday">
-        <h2 class="form-title">O que você aprendeu hoje?</h2>
-        <form @submit.prevent="handleSubmitReview">
-          <div class="textarea-wrapper">
-            <textarea
-              v-model="reviewContent"
-              placeholder="Escreva aqui sua reflexão..."
-              rows="4"
-              required
-              class="input-field"
-              maxlength="500" 
-            ></textarea>
+      <div v-if="!hasSubmittedToday" class="form-content">
+        <form @submit.prevent="handleSubmitReview" class="review-form">
+          <textarea
+            ref="textareaRef"
+            v-model="reviewContent"
+            placeholder="O que você aprendeu hoje?"
+            class="input-field expanding-textarea"
+            @input="autoResizeTextarea"
+            rows="1"
+            maxlength="500"
+          ></textarea>
+          <div class="form-actions">
             <small class="char-counter">{{ reviewContent.length }} / 500</small>
+            <button type="submit" class="btn-primary" :disabled="isSubmitting || reviewContent.length === 0">
+              {{ isSubmitting ? 'Enviando...' : 'Postar' }}
+            </button>
           </div>
-          <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? 'Enviando...' : 'Enviar Review' }}
-          </button>
         </form>
       </div>
       <div v-else class="submitted-state">
-        <CheckCircle2 :size="40" class="success-icon" />
+        <CheckCircle2 :size="32" class="success-icon" />
         <div class="submitted-text">
           <h2 class="form-title">Parabéns!</h2>
-          <p>Você já completou seu estudo de hoje. Volte amanhã!</p>
+          <p>Você já completou seu estudo de hoje.</p>
         </div>
         <button v-if="authStore.user?.isAdmin" @click="writeAnother" class="btn-another-review">
-          Escrever Outra (Admin)
+          Escrever Outra
         </button>
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading">Carregando reviews...</div>
+    <div v-if="isLoading && !isRefreshing" class="loading">Carregando feed...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div v-else-if="reviewsData && reviewsData.reviews.length > 0" class="feed-container">
       <div class="reviews-list">
-        <div class="card review-card-item" v-for="(review, index) in reviewsData.reviews" :key="review.id">
-          <p class="review-content">"{{ review.conteudo }}"</p>
-          <div class="review-footer">
-            <div class="author-info">
-              <span class="author">- {{ review.usuario }}</span>
-              <small class="review-date">{{ formatDate(review.data_criacao) }}</small>
-            </div>
-            <div class="actions">
-              <button @click="handleLike(review.id, index)" class="action-btn like-btn" :class="{ 'liked': review.isLikedByCurrentUser }" title="Curtir">
-                <Heart :size="18" />
-                <span>{{ review.likesCount }}</span>
-              </button>
-              <button v-if="canShare" @click="handleShare(review)" class="action-btn share-btn" title="Compartilhar">
-                <Share2 :size="18" />
-              </button>
-              <button @click="handleReport(review.id)" class="action-btn report-btn" title="Reportar">
-                <Flag :size="18" />
-              </button>
-              <button v-if="authStore.user?.isAdmin" @click="handleDelete(review.id)" class="action-btn delete-btn" title="Deletar Review">
-                <Trash2 :size="18" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <ReviewCard 
+          v-for="review in reviewsData.reviews" 
+          :key="review.id"
+          :review="review"
+          @review-deleted="handleReviewDeleted"
+        />
       </div>
       <div class="pagination">
         <button @click="changePage(reviewsData.currentPage - 1)" :disabled="reviewsData.currentPage <= 1">Anterior</button>
@@ -77,12 +71,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/auth';
-import { CheckCircle2, Trash2, Heart, Flag, Share2 } from 'lucide-vue-next';
+import { CheckCircle2, ArrowDown, Loader } from 'lucide-vue-next';
+import ReviewCard from '@/components/ReviewCard.vue';
 
 const reviewContent = ref('');
 const isSubmitting = ref(false);
@@ -96,19 +91,22 @@ const route = useRoute();
 const router = useRouter();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
-const canShare = !!navigator.share;
+const textareaRef = ref(null);
 
-const formatDate = (isoString) => {
-  if (!isoString) return '';
-  const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return new Date(isoString).toLocaleString('pt-BR', options);
-};
+const pullStartY = ref(0);
+const pullDistance = ref(0);
+const isRefreshing = ref(false);
+const PULL_THRESHOLD = 80;
 
 const fetchInitialData = async () => {
-  isLoading.value = true;
+  if (!isRefreshing.value) {
+    isLoading.value = true;
+  }
   error.value = null;
   try {
-    const page = parseInt(route.query.page) || 1;
+    const page = 1;
+    router.replace({ query: {} }); 
+
     const [profileRes, reviewsRes] = await Promise.all([
       api.get('/usuarios/me'),
       api.get(`/reviews?page=${page}`)
@@ -137,6 +135,14 @@ const fetchReviewsOnly = async () => {
   }
 };
 
+const autoResizeTextarea = () => {
+  const textarea = textareaRef.value;
+  if (textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }
+};
+
 const handleSubmitReview = async () => {
   if (!reviewContent.value.trim()) {
     toast.warning('Sua review não pode estar em branco.');
@@ -151,9 +157,15 @@ const handleSubmitReview = async () => {
     toast.success(`Parabéns! Você ganhou ${response.data.pontos_ganhos} pontos!`);
     
     const newReview = { ...response.data, usuario: authStore.user.usuario, likesCount: 0, isLikedByCurrentUser: false };
-    reviewsData.value.reviews.unshift(newReview);
+    if (reviewsData.value?.reviews) {
+        reviewsData.value.reviews.unshift(newReview);
+    } else {
+        reviewsData.value = { reviews: [newReview], totalPages: 1, currentPage: 1 };
+    }
     
     reviewContent.value = '';
+    if (textareaRef.value) textareaRef.value.style.height = 'auto';
+
     if (!authStore.user?.isAdmin) {
       hasSubmittedToday.value = true;
     }
@@ -179,53 +191,48 @@ const triggerInstallPrompt = async () => {
   showInstallBanner.value = false;
 };
 
-const handleLike = async (reviewId, index) => {
-  const review = reviewsData.value.reviews[index];
-  review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
-  review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
-  try {
-    await api.post(`/reviews/${reviewId}/like`);
-  } catch (err) {
-    review.isLikedByCurrentUser = !review.isLikedByCurrentUser;
-    review.isLikedByCurrentUser ? review.likesCount++ : review.likesCount--;
-    toast.error('Ocorreu um erro ao processar sua curtida.');
+const handleReviewDeleted = (deletedReviewId) => {
+  if (reviewsData.value) {
+    reviewsData.value.reviews = reviewsData.value.reviews.filter(r => r.id !== deletedReviewId);
   }
 };
 
-const handleReport = async (reviewId) => {
-  if (confirm('Deseja reportar esta review por conteúdo inadequado?')) {
-    try {
-      const response = await api.post(`/reviews/${reviewId}/report`);
-      toast.success(response.data.message);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Não foi possível reportar a review.');
-    }
+const onTouchStart = (e) => {
+  if (window.scrollY === 0) {
+    pullStartY.value = e.touches[0].clientY;
+  } else {
+    pullStartY.value = 0;
   }
 };
 
-const handleShare = async (review) => {
-  const siteUrl = 'https://studup.app/';
-  const shareData = {
-    title: 'Review da Lição - Stud+',
-    text: `Confira minha review de hoje no Stud+:\n\n"${review.conteudo}"\n\nEstude você também:`,
-    url: siteUrl
-  };
-  try {
-    await navigator.share(shareData);
-  } catch (err) {
-    console.error('Erro ao compartilhar:', err);
+const onTouchMove = (e) => {
+  if (pullStartY.value === 0) return;
+  const currentY = e.touches[0].clientY;
+  let distance = currentY - pullStartY.value;
+  if (distance > 0) {
+    e.preventDefault();
+    pullDistance.value = Math.pow(distance, 0.85);
   }
 };
 
-const handleDelete = async (reviewId) => {
-  if (confirm('Tem certeza que deseja deletar esta review? Os pontos do usuário serão revertidos.')) {
-    try {
-      await api.delete(`/reviews/${reviewId}`);
-      toast.success('Review deletada com sucesso!');
-      reviewsData.value.reviews = reviewsData.value.reviews.filter(r => r.id !== reviewId);
-    } catch (err) {
-      toast.error('Não foi possível deletar a review.');
-    }
+const handleRefresh = async () => {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  pullDistance.value = 60;
+  
+  await fetchInitialData();
+  
+  isRefreshing.value = false;
+  pullStartY.value = 0;
+  pullDistance.value = 0;
+};
+
+const onTouchEnd = () => {
+  if (pullDistance.value > PULL_THRESHOLD) {
+    handleRefresh();
+  } else {
+    pullStartY.value = 0;
+    pullDistance.value = 0;
   }
 };
 
@@ -236,40 +243,169 @@ onMounted(() => {
     installPromptEvent.value = e;
     showInstallBanner.value = true;
   });
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd);
   fetchInitialData();
 });
 
+onUnmounted(() => {
+  document.removeEventListener('touchstart', onTouchStart);
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+});
+
 watch(() => route.query.page, (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+  if (newPage && (newPage !== oldPage)) {
     fetchReviewsOnly();
   }
 });
 </script>
 
 <style scoped>
-.home-container { display: flex; flex-direction: column; gap: 2rem; }
-.create-review-card { padding: 1.5rem; }
-.form-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; text-align: left; }
-.textarea-wrapper { position: relative; margin-bottom: 1rem; }
-textarea { resize: vertical; margin-bottom: 0; min-height: 50px; }
-.char-counter { position: absolute; bottom: 10px; right: 10px; font-size: 0.8rem; color: var(--cor-texto-suave); }
-.create-review-card .btn-primary { width: 100%; }
-.submitted-state { display: flex; align-items: center; gap: 1rem; }
-.success-icon { color: var(--cor-primaria); }
-.submitted-text { flex-grow: 1; text-align: left; }
-.submitted-state .form-title { font-size: 1.1rem; margin-bottom: 0; }
-.submitted-state p { font-size: 0.9rem; color: var(--cor-texto-suave); }
-.btn-another-review { font-size: 0.8rem; flex-shrink: 0; text-decoration: underline; background: none; border: none; cursor: pointer; color: var(--cor-texto-suave); }
-
-.loading, .no-data, .error-message { text-align: center; margin-top: 2rem; }
-.reviews-list { display: flex; flex-direction: column; gap: 1.5rem; }
-.review-card-item { border-left: 4px solid var(--cor-secundaria); }
-.review-content { margin-bottom: 1rem; font-style: italic; color: var(--cor-texto-suave); }
-.review-footer { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.9rem; }
-.author-info { display: flex; flex-direction: column; align-items: flex-start; }
-.author { font-weight: 700; }
-.review-date { font-size: 0.8rem; color: var(--cor-texto-suave); opacity: 0.8; }
-.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
+.home-container {
+  position: relative;
+  padding-top: 50px;
+  margin-top: -50px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: -1;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  opacity: 0;
+}
+.pull-to-refresh-indicator[style*="translateY(0px)"] {
+  /* Mantém o ícone invisível quando não está sendo puxado */
+  opacity: 0 !important;
+}
+.icon-wrapper {
+  background-color: var(--cor-container);
+  border-radius: 50%;
+  padding: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  color: var(--cor-texto-suave);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-wrapper.refreshing .lucide-loader {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.create-review-card {
+  padding: 1rem;
+}
+.form-content {
+  display: flex;
+  gap: 1rem;
+}
+.review-form {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.expanding-textarea {
+  resize: none;
+  border: none;
+  background: transparent;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  min-height: 28px;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--cor-borda);
+}
+.expanding-textarea:focus {
+  border-color: var(--cor-secundaria);
+  outline: none;
+  box-shadow: none;
+}
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+.btn-submit-review {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  border-bottom-width: 3px;
+  text-transform: none;
+}
+.btn-submit-review:disabled {
+  background-color: #a0c3f0;
+  border-bottom-color: #a0c3f0;
+}
+.submitted-state {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.success-icon {
+  color: var(--cor-primaria);
+}
+.submitted-text {
+  flex-grow: 1;
+  text-align: left;
+}
+.submitted-state .form-title {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+.submitted-state p {
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+}
+.btn-another-review {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cor-texto-suave);
+}
+.loading, .no-data, .error-message {
+  text-align: center;
+  margin-top: 2rem;
+}
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.reviews-list > :deep(.card) {
+  border-top: 1px solid var(--cor-borda);
+  border-left: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+}
 .pagination button {
   background-color: var(--cor-container);
   border: 2px solid var(--cor-borda);
@@ -280,27 +416,26 @@ textarea { resize: vertical; margin-bottom: 0; min-height: 50px; }
   font-family: 'Nunito', sans-serif;
   font-weight: 700;
 }
-.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.actions { display: flex; align-items: center; gap: 0.75rem; }
-.action-btn {
-  display: flex; align-items: center; gap: 0.4rem; background: none;
-  border: 1px solid var(--cor-borda); padding: 0.3rem 0.7rem; border-radius: 1rem;
-  cursor: pointer; font-size: 0.9rem; color: var(--cor-texto-suave); transition: all 0.2s ease;
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
-.action-btn:hover { border-color: var(--cor-texto); color: var(--cor-texto); }
-.like-btn.liked { background-color: #ffeded; color: var(--cor-erro); border-color: var(--cor-erro); }
-.like-btn.liked :deep(svg) { fill: var(--cor-erro); }
-.report-btn:hover { border-color: #f59e0b; color: #f59e0b; }
-.share-btn:hover { border-color: var(--cor-primaria); color: var(--cor-primaria); }
-.delete-btn { background-color: transparent; padding: 0.4rem; border: none; }
-.delete-btn:hover { color: var(--cor-erro); background-color: #ffeded; }
 .install-banner {
-  position: fixed; bottom: 80px; left: 1.5rem; right: 1.5rem;
-  max-width: calc(500px - 3rem); margin: 0 auto; background-color: var(--cor-secundaria);
-  color: white; padding: 1rem; border-radius: 12px;
-  display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slide-up 0.5s ease-out;
+  position: fixed;
+  bottom: 80px;
+  left: 1.5rem;
+  right: 1.5rem;
+  max-width: calc(500px - 3rem);
+  margin: 0 auto;
+  background-color: var(--cor-secundaria);
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slide-up 0.5s ease-out;
   z-index: 20;
 }
 @keyframes slide-up {
@@ -308,8 +443,12 @@ textarea { resize: vertical; margin-bottom: 0; min-height: 50px; }
   to { transform: translateY(0); opacity: 1; }
 }
 .btn-install {
-  background-color: var(--cor-container); color: var(--cor-secundaria);
-  border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700;
+  background-color: var(--cor-container);
+  color: var(--cor-secundaria);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
 }
 </style>
