@@ -27,10 +27,21 @@
           <label for="pais">País</label>
           <input id="pais" type="text" v-model.trim="formData.pais" required class="input-field"/>
         </div>
+        
         <div class="form-group">
           <label for="estado">Estado</label>
-          <input id="estado" type="text" v-model.trim="formData.estado" required class="input-field"/>
+          <select id="estado" v-model="formData.estado" required class="input-field">
+            <option disabled value="">Selecione um estado</option>
+            <option v-for="estado in estados" :key="estado.sigla" :value="estado.sigla">
+              {{ estado.nome }} ({{ estado.sigla }})
+            </option>
+          </select>
         </div>
+        <div v-if="formData.estado === 'Outro'" class="form-group">
+          <label for="estado-outro">Qual seu estado/província?</label>
+          <input id="estado-outro" type="text" v-model="estadoOutro" class="input-field" />
+        </div>
+
         <div class="form-group">
           <label for="cidade">Cidade</label>
           <input id="cidade" type="text" v-model.trim="formData.cidade" required class="input-field"/>
@@ -91,7 +102,6 @@ import { useToast } from 'vue-toastification';
 import logoUrl from '@/assets/stud_blue.png';
 import BaseModal from '@/components/BaseModal.vue';
 import { ShieldCheck } from 'lucide-vue-next';
-// Importamos o novo componente de conteúdo
 import PrivacyPolicyContent from '@/components/PrivacyPolicyContent.vue';
 
 const formData = ref({
@@ -110,6 +120,20 @@ const novaIgrejaNome = ref('');
 const usernameError = ref('');
 const acceptedPolicy = ref(false);
 const isPolicyModalOpen = ref(false);
+const estadoOutro = ref('');
+
+const estados = ref([
+  { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' }, { sigla: 'AP', nome: 'Amapá' },
+  { sigla: 'AM', nome: 'Amazonas' }, { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
+  { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' }, { sigla: 'GO', nome: 'Goiás' },
+  { sigla: 'MA', nome: 'Maranhão' }, { sigla: 'MT', nome: 'Mato Grosso' }, { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+  { sigla: 'MG', nome: 'Minas Gerais' }, { sigla: 'PA', nome: 'Pará' }, { sigla: 'PB', nome: 'Paraíba' },
+  { sigla: 'PR', nome: 'Paraná' }, { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' },
+  { sigla: 'RJ', nome: 'Rio de Janeiro' }, { sigla: 'RN', nome: 'Rio Grande do Norte' }, { sigla: 'RS', nome: 'Rio Grande do Sul' },
+  { sigla: 'RO', nome: 'Rondônia' }, { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
+  { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' }, { sigla: 'TO', nome: 'Tocantins' },
+  { sigla: 'Outro', nome: 'Outro (Internacional)' }
+]);
 
 onMounted(async () => {
   try {
@@ -152,7 +176,16 @@ const handleRegister = async () => {
   }
 
   isLoading.value = true;
+  
   const registrationPayload = { ...formData.value, aceitouPolitica: acceptedPolicy.value };
+  if (registrationPayload.estado === 'Outro') {
+    if (!estadoOutro.value) {
+      toast.error('Por favor, especifique seu estado/província.');
+      isLoading.value = false;
+      return;
+    }
+    registrationPayload.estado = estadoOutro.value;
+  }
 
   try {
     if (registrationPayload.igreja_id === 'new') {
@@ -189,7 +222,6 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-/* O :deep foi removido, pois o estilo do texto da política está agora no seu próprio componente */
 .auth-container { text-align: center; padding-top: 1rem; }
 .logo { height: 120px; margin-bottom: -25px; position: relative; z-index: 1; }
 .title { font-size: 1.8rem; font-weight: 900; margin-top: 0; margin-bottom: 1.5rem; }
@@ -203,7 +235,7 @@ label { font-weight: 700; margin-bottom: 0.5rem; display: block; }
   border-bottom-color: var(--cor-texto-suave);
   cursor: not-allowed;
 }
-#nova-igreja {
+#nova-igreja, #estado-outro {
   margin-top: -0.5rem;
 }
 .validation-error {
