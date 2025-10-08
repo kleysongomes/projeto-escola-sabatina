@@ -243,16 +243,12 @@ onMounted(() => {
     installPromptEvent.value = e;
     showInstallBanner.value = true;
   });
-  document.addEventListener('touchstart', onTouchStart, { passive: true });
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('touchend', onTouchEnd);
+  // Removido os listeners globais, pois agora estão no template
   fetchInitialData();
 });
 
 onUnmounted(() => {
-  document.removeEventListener('touchstart', onTouchStart);
-  document.removeEventListener('touchmove', onTouchMove);
-  document.removeEventListener('touchend', onTouchEnd);
+  // Limpeza de listeners não é mais necessária aqui
 });
 
 watch(() => route.query.page, (newPage, oldPage) => {
@@ -260,6 +256,7 @@ watch(() => route.query.page, (newPage, oldPage) => {
     fetchReviewsOnly();
   }
 });
+
 </script>
 
 <style scoped>
@@ -287,7 +284,6 @@ watch(() => route.query.page, (newPage, oldPage) => {
   opacity: 0;
 }
 .pull-to-refresh-indicator[style*="translateY(0px)"] {
-  /* Mantém o ícone invisível quando não está sendo puxado */
   opacity: 0 !important;
 }
 .icon-wrapper {
@@ -392,14 +388,10 @@ watch(() => route.query.page, (newPage, oldPage) => {
 .reviews-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 1.5rem; /* Re-adiciona o espaçamento entre os cards */
 }
-.reviews-list > :deep(.card) {
-  border-top: 1px solid var(--cor-borda);
-  border-left: none;
-  border-radius: 0;
-  box-shadow: none;
-}
+/* O seletor :deep foi REMOVIDO para que o ReviewCard use seu próprio estilo */
+
 .pagination {
   display: flex;
   justify-content: space-between;

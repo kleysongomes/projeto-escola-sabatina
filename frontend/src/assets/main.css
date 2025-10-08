@@ -72,13 +72,13 @@ body {
 
 /* Estilos globais para botões e inputs */
 .btn-primary {
-  padding: 1rem;
+  padding: 0.8rem;
   background-color: var(--cor-primaria);
   color: #FFFFFF; /* Forçado para branco para melhor contraste */
   border: none;
   border-bottom: 4px solid var(--cor-primaria-hover);
   border-radius: 12px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
