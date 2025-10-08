@@ -60,8 +60,10 @@
     <div class="card info-card">
       <h2 class="section-title"><Heart :size="20" /> Agradecimentos</h2>
       <ul>
-        <li>A Adventech por fornecer a API gratuita da Lição da Escola Sabatina.</li>
-        <li>Aos testadores: luanaa, Makel, Frankllin </li>
+        <li>A Deus por guiar o projeto</li>
+        <li>Luana</li>
+        <li>Makel</li>
+        <li>Frankllin</li>
       </ul>
     </div>
 
