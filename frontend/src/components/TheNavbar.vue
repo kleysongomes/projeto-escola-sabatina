@@ -19,7 +19,6 @@
 
 <script setup>
 import { RouterLink } from 'vue-router';
-// 1. IMPORTAR O NOVO ÍCONE
 import { SquarePen, Trophy, Compass, UserCircle2 } from 'lucide-vue-next';
 </script>
 
@@ -28,13 +27,16 @@ import { SquarePen, Trophy, Compass, UserCircle2 } from 'lucide-vue-next';
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
+  right: 0; /* Garante que o elemento ocupe a largura toda */
   background-color: var(--cor-container);
   border-top: 1px solid var(--cor-borda);
   box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: center;
   z-index: 10;
+  /* Força a aceleração de hardware em navegadores WebKit (Safari) */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .navbar-content {
   display: flex;
