@@ -47,8 +47,7 @@
       <div class="card ranking-card">
         <ol class="ranking-list">
           <li v-for="(user, index) in rankingData.ranking" :key="user.id" :class="{ 'current-user': user.id === authStore.user?.id }">
-            <span class="rank-position">#{{ (rankingData.currentPage - 1) * 10 + index + 1 }}</span>
-            
+            <span class="rank-position">#{{ index + 1 }}</span>
             <div class="user-info">
               <div class="user-main-info">
                 <span class="username">{{ user.usuario }}</span>
@@ -56,25 +55,23 @@
               </div>
               <div class="user-sub-info">
                 <span class="location">{{ user.cidade }}, {{ user.pais }}</span>
-                <span v-if="user.igreja_nome" class="church-name">{{ user.igreja_nome }}</span>
+                <span v-if="user.igreja_nome" class="church-name">({{ user.igreja_nome }})</span>
               </div>
             </div>
-            
           </li>
         </ol>
       </div>
-      <div class="pagination">
-        <button @click="changePage(rankingData.currentPage - 1)" :disabled="rankingData.currentPage <= 1">Anterior</button>
-        <span>Página {{ rankingData.currentPage }} de {{ rankingData.totalPages }}</span>
-        <button @click="changePage(rankingData.currentPage + 1)" :disabled="rankingData.currentPage >= rankingData.totalPages">Próximo</button>
-      </div>
+      
+      <div ref="loadMoreTrigger" class="load-more-trigger"></div>
+      <div v-if="isLoadingMore" class="loading">Carregando mais...</div>
+
     </div>
     <div v-else class="no-data">Nenhum resultado encontrado para este filtro.</div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
@@ -94,6 +91,9 @@ const filters = ref({
 });
 const igrejas = ref([]);
 const showFilters = ref(false);
+const isLoadingMore = ref(false);
+const loadMoreTrigger = ref(null);
+let observer = null;
 
 const toggleFilters = () => {
   showFilters.value = !showFilters.value;
@@ -108,17 +108,42 @@ const fetchIgrejas = async () => {
   }
 };
 
-const fetchRanking = async () => {
-  isLoading.value = true;
+const fetchRanking = async (isNewFilter = false) => {
+  if (isNewFilter) {
+    isLoading.value = true;
+    rankingData.value = null;
+  }
   error.value = null;
+  
   try {
     const params = new URLSearchParams(route.query);
+    params.set('page', '1');
     const response = await api.get(`/usuarios/ranking?${params.toString()}`);
     rankingData.value = response.data;
   } catch (err) {
     error.value = 'Não foi possível carregar o ranking.';
   } finally {
     isLoading.value = false;
+  }
+};
+
+const loadMoreRanking = async () => {
+  if (isLoadingMore.value || !rankingData.value || rankingData.value.currentPage >= rankingData.value.totalPages) {
+    return;
+  }
+  isLoadingMore.value = true;
+  try {
+    const nextPage = rankingData.value.currentPage + 1;
+    const params = new URLSearchParams(route.query);
+    params.set('page', String(nextPage));
+    const response = await api.get(`/usuarios/ranking?${params.toString()}`);
+    
+    rankingData.value.ranking.push(...response.data.ranking);
+    rankingData.value.currentPage = response.data.currentPage;
+  } catch (err) {
+    console.error('Erro ao carregar mais rankings:', err);
+  } finally {
+    isLoadingMore.value = false;
   }
 };
 
@@ -129,7 +154,7 @@ const applyFilters = () => {
       activeFilters[key] = filters.value[key];
     }
   }
-  router.push({ query: { ...activeFilters, page: 1 } });
+  router.push({ query: { ...activeFilters } });
 };
 
 const clearFilters = () => {
@@ -137,24 +162,43 @@ const clearFilters = () => {
   router.push({ name: 'ranking' });
 };
 
-const changePage = (page) => {
-  if (rankingData.value && page > 0 && page <= rankingData.value.totalPages) {
-    router.push({ query: { ...route.query, page } });
+const setupObserver = () => {
+  if (observer) observer.disconnect();
+
+  observer = new IntersectionObserver(async (entries) => {
+    const entry = entries[0];
+    if (entry.isIntersecting && !isLoadingMore.value) {
+      await loadMoreRanking();
+    }
+  }, { rootMargin: '200px' });
+
+  if (loadMoreTrigger.value) {
+    observer.observe(loadMoreTrigger.value);
   }
 };
 
 onMounted(() => {
   fetchIgrejas();
-  fetchRanking();
 });
 
-watch(() => route.query, () => {
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect();
+  }
+});
+
+watch(() => route.query, async () => {
   filters.value.pais = route.query.pais || '';
   filters.value.estado = route.query.estado || '';
   filters.value.cidade = route.query.cidade || '';
   filters.value.igreja_id = route.query.igreja_id || '';
-  fetchRanking();
-}, { deep: true });
+  
+  await fetchRanking(true);
+  
+  await nextTick();
+  setupObserver();
+  
+}, { deep: true, immediate: true });
 </script>
 
 <style scoped>
@@ -189,29 +233,16 @@ watch(() => route.query, () => {
 }
 .username { font-weight: 700; font-size: 1.1rem; }
 .points { font-weight: 900; font-size: 1.1rem; color: var(--cor-secundaria); }
-
 .user-sub-info {
   display: flex;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   font-size: 0.8rem; 
   color: var(--cor-texto-suave);
   margin-top: 0.25rem;
 }
-.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
-.pagination span { color: var(--cor-texto-suave); font-weight: 700; }
-.pagination button {
-  background-color: var(--cor-container);
-  border: 2px solid var(--cor-borda);
-  color: var(--cor-texto-suave);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-}
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.church-name {
+  font-style: italic;
 }
 .ranking-list li.current-user {
   background-color: #e0f2fe;
@@ -309,5 +340,8 @@ watch(() => route.query, () => {
   opacity: 0;
   transform: translateY(-10px);
   max-height: 0px;
+}
+.load-more-trigger {
+  height: 50px;
 }
 </style>
