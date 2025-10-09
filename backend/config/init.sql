@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS igrejas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Cria a tabela de usuários
+-- Cria a tabela de usuários com todas as colunas
 CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     usuario VARCHAR(50) UNIQUE NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS bug_reports (
   CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
--- ADICIONADO: Cria a tabela para as propagandas
+-- Cria a tabela para as propagandas
 CREATE TABLE IF NOT EXISTS propagandas (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
@@ -93,4 +93,13 @@ CREATE TABLE IF NOT EXISTS propagandas (
         FOREIGN KEY(target_igreja_id)
         REFERENCES igrejas(id)
         ON DELETE SET NULL
+);
+
+-- ADICIONADO: Cria a tabela para os títulos da lição
+CREATE TABLE IF NOT EXISTS titulos_licao (
+  id SERIAL PRIMARY KEY,
+  data_licao DATE NOT NULL UNIQUE,
+  titulo VARCHAR(255) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );

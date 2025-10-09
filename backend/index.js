@@ -45,6 +45,9 @@ app.use('/api/auth', authRoutes);
 const propagandaRoutes = require('./routes/propagandaRoutes');
 app.use('/api/propagandas', propagandaRoutes);
 
+// Importa e usa as rotas de títulos da lição
+const lessonTitleRoutes = require('./routes/lessonTitleRoutes');
+app.use('/api/titulos-licao', lessonTitleRoutes);
 
 // Função que inicializa o banco de dados e depois inicia o servidor
 const startServer = async () => {

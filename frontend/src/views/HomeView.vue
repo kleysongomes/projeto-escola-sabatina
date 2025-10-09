@@ -1,5 +1,5 @@
 <template>
-  <div class.vue
+  <div 
     class="home-container"
     @touchstart="onTouchStart"
     @touchmove="onTouchMove"
@@ -10,6 +10,11 @@
         <Loader v-if="isRefreshing" :size="24" />
         <ArrowDown v-else :size="24" :style="{ transform: `rotate(${pullDistance / 2}deg)` }" />
       </div>
+    </div>
+
+    <div v-if="lessonTitle" class="card lesson-card">
+      <p>Titulo da Lição de Hoje</p>
+      <h1 class="lesson-title">{{ lessonTitle }}</h1>
     </div>
 
     <div class="card create-review-card">
@@ -44,7 +49,7 @@
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading">Carregando feed...</div>
+    <div v-if="isLoading && !isRefreshing" class="loading">Carregando feed...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div v-else-if="reviewsData && reviewsData.reviews.length > 0" class="feed-container">
       <div class="reviews-list">
@@ -91,15 +96,14 @@ const router = useRouter();
 const installPromptEvent = ref(null);
 const showInstallBanner = ref(false);
 const textareaRef = ref(null);
-
 const pullStartY = ref(0);
 const pullDistance = ref(0);
 const isRefreshing = ref(false);
 const PULL_THRESHOLD = 80;
-
 const isLoadingMore = ref(false);
 const loadMoreTrigger = ref(null);
 let observer = null;
+const lessonTitle = ref('');
 
 const fetchInitialData = async () => {
   if (!isRefreshing.value) {
@@ -110,12 +114,14 @@ const fetchInitialData = async () => {
     const page = 1;
     router.replace({ query: {} }); 
 
-    const [profileRes, reviewsRes] = await Promise.all([
+    const [profileRes, reviewsRes, titleRes] = await Promise.all([
       api.get('/usuarios/me'),
-      api.get(`/reviews?page=${page}`)
+      api.get(`/reviews?page=${page}`),
+      api.get('/titulos-licao/hoje')
     ]);
     hasSubmittedToday.value = profileRes.data.userHasSubmitted;
     reviewsData.value = reviewsRes.data;
+    lessonTitle.value = titleRes.data.titulo;
   } catch (err) {
     error.value = 'Não foi possível carregar o feed.';
     console.error(err);
@@ -309,6 +315,16 @@ onUnmounted(() => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+.lesson-card { 
+  text-align: center; 
+  padding: 1rem 1.5rem;
+  border-top: 4px solid var(--cor-secundaria); 
+}
+.lesson-title { 
+  font-size: 1.5rem; 
+  font-weight: 900; 
+  line-height: 1.3; 
 }
 .create-review-card {
   padding: 1rem;
