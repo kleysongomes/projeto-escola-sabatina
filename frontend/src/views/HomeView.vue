@@ -13,7 +13,7 @@
     </div>
 
     <div v-if="lessonTitle" class="card lesson-card">
-      <p>Titulo da Lição de Hoje</p>
+      <p>Título da Lição de Hoje</p>
       <h1 class="lesson-title">{{ lessonTitle }}</h1>
     </div>
 
